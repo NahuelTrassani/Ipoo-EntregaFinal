@@ -6,7 +6,7 @@ class Pasajero
     private $nombre;
     private $apellido;
     private $telefono;
-    private $nroVuelo;
+    private $viaje;//intancia de objeto
     private $numeroAsiento;
     private $numeroTicket;
     private $mensajeoperacion;
@@ -35,7 +35,7 @@ class Pasajero
     }
     public function getVuelo()
     {
-        return $this->nroVuelo;
+        return $this->viaje->getId();
     }
     public function getDni()
     {
@@ -78,9 +78,9 @@ class Pasajero
         $this->dni = $dni;
     }
 
-    public function setVuelo($nroVuelo)
+    public function setVuelo($idViaje)
     {
-        $this->nroVuelo = $nroVuelo;
+        $this->viaje->setId($idViaje);
     }
     // Establece el valor de nombre
 
@@ -102,15 +102,7 @@ class Pasajero
         $this->telefono = $telefono;
     }
 
-    public function getNroVuelo()
-    {
-        return $this->nroVuelo;
-    }
-
-    public function setNroVuelo($nroVuelo)
-    {
-        $this->nroVuelo = $nroVuelo;
-    }
+    
 
     public function getNumeroAsiento()
     {
@@ -138,22 +130,23 @@ class Pasajero
         $this->nombre = "";
         $this->apellido = "";
         $this->telefono = 0;
-        $this->nroVuelo = 0;
+        $this->viaje = new Viaje();
         $this->numeroAsiento = 0;
         $this->numeroTicket = 0;
     }
 
-    public function cargarPersona($dni, $nombre, $apellido, $telefono, $nroVuelo)
+    public function cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje)
     {
         $this->setDni($dni);
         $this->setNombre($nombre);
         $this->setApellido($apellido);
         $this->setTelefono($telefono);
-        $this->setVuelo($nroVuelo);
+        $this->setVuelo($idViaje);
     }
 
-    public function agregarPasajero($dni, $nombre, $apellido, $telefono, $idViaje)
+    public function agregarPasajero($dni, $nombre, $apellido, $telefono, $viaje)
     {
+        $idViaje = $viaje->getId();
         $pasajero = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
@@ -240,81 +233,6 @@ class Pasajero
         return $arregloPersona;
     }
 
-    /*
-                    //echo "eliminiar al usuario de la col viajes para insertarlo en la col viajes nueva asignada.";
-                    $this->borrarPasajeroV2($colEmpresas, $documento);
-                    // Buscar la nueva empresa basándote en el idViaje seleccionado
-                    foreach ($colEmpresas as $empresa) {
-                        foreach ($empresa->getViajes() as $viaje) {
-                            if ($viaje->getId() == $idViaje) {
-                                $nuevaEmpresa = $empresa;
-                                break 2; // Salir de ambos bucles
-                            }
-                        }
-                    }
-                    // Verificar si se encontró la nueva empresa correspondiente
-                    if ($nuevaEmpresa != null) {
-
-                        // Insertar al usuario en la nueva colección de viajes seleccionada
-                        foreach ($nuevaEmpresa->getViajes() as $viaje) {
-                            if ($viaje->getId() == $idViaje) {
-                                $viaje->cargarPasajeroVuelo($this);
-                                $isOk = true;
-                                break; // Salir del bucle
-                            }
-                        }
-                    } else {
-                        echo "No se encontró la empresa correspondiente al nuevo viaje seleccionado.";
-                    }
-                }
-           */
-    /*
-    function eliminarPasajerosViaje($idViaje)
-    {
-
-        $conx = new BaseDatos();
-        $resp = $conx->iniciar();
-        if ($resp == 1) {
-            $sql = "SELECT * FROM pasajero WHERE idviaje = $idViaje";
-            $pasajeros = $conx->EjecutarConRetornoBidimensional($sql);
-            if (count($pasajeros) == 0) {
-                // No hay pasajeros para eliminar, se devuelve true
-                return true;
-            }
-            //print_r($pasajeros);
-            $contBorrados = 0;
-            foreach ($pasajeros as $pasajero) {
-                $sql2 = $conx->eliminarPasajero($pasajero['pdocumento']);
-                $borroPasajero = $conx->Ejecutar($sql2);
-                if ($borroPasajero == 1) {
-                    $contBorrados++;
-                }
-            }
-            // Se compara la cantidad de pasajeros eliminados con la cantidad total de pasajeros
-            if ($contBorrados == count($pasajeros)) {
-                return true; // Se han eliminado todos los pasajeros
-            } else {
-                return false; // No se han podido eliminar todos los pasajeros
-            }
-
-        }
-    }
-    function borrarPasajeroV2($colEmpresas, $documento)
-    {
-        foreach ($colEmpresas as $empresas) {
-            $viajes = $empresas->getViajes();
-            foreach ($viajes as $viaje) {
-                $pasajeros = $viaje->getPasajeros();
-                foreach ($pasajeros as $key => $pasajero) {
-                    if ($pasajero->getDni() == $documento) {
-                        unset($pasajeros[$key]);
-                    }
-                }
-                $viaje->setPasajeros($pasajeros); // Actualiza el arreglo de pasajeros del viaje
-            }
-        }
-    }
-*/
     // Funciones para la tabla 'pasajero'
 
     function insertarPasajero($documento, $nombre, $apellido, $telefono, $idViaje)

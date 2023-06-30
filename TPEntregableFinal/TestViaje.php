@@ -11,15 +11,52 @@
  * no echo ni retorno en la misma funcion ---OOOKKKK
  */
 
-include "datos/Pasajero.php";
-include "datos/Viaje.php";
-include "datos/ResponsableV.php";
+
 include "datos/BaseDatos.php";
+include "datos/ResponsableV.php";
 include "datos/Empresa.php";
+include "datos/Viaje.php";
+include "datos/Pasajero.php";
 
 $empresa = new Empresa();
 $colEmpresas = $empresa->listar();
-//print_r($colEmpresas);
+print_r($colEmpresas);
+function verEmpresas()
+{
+    $empresa = new Empresa();
+    $colEmpresas = $empresa->listar();
+    foreach ($colEmpresas as $empresa) {
+        echo "ID: " . $empresa->getIdEmpresa() . "\n";
+        echo "Nombre: " . $empresa->getEnombre() . "\n";
+        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "\n";
+    }
+}
+
+function verViajes()
+{
+    $viaje = new Viaje();
+    $colViajes = $viaje->listar();
+    foreach ($colViajes as $viaje) {
+        echo "ID: " . $viaje->getId() . "\n";
+        echo "Destino: " . $viaje->getDestino() . "\n";
+        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "\n";
+    }
+}
+
+function verPasajeros()
+{
+
+    $pasajero = new Pasajero();
+    $colPasajeros = $pasajero->listar();
+    foreach ($colPasajeros as $pasajero) {
+        echo "ID: " . $pasajero->getDni() . "\n";
+        echo "Nombre: " . $pasajero->getNombre() . "\n";
+        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "\n";
+    }
+}
 
 //ok. Empieza el programa.
 menu($colEmpresas);
@@ -32,7 +69,7 @@ function menu($colEmpresas)
     echo "\n" . "¡Bienvenido/a!" . "\n";
     echo "Seleccione una opción para continuar: " . "\n" . "\n" .
 
-        "       ║       EMPRESA      ║" . "\n" . "\n" .
+        "------------EMPRESA------------ " . "\n" . "\n" .
 
         "║  1   ║ Cargar Empresa" . "\n" .
         "║  2   ║ Modificar Empresa" . "\n" .
@@ -57,18 +94,28 @@ function menu($colEmpresas)
         "║  10  ║ Modificar Pasajero" . "\n" .
         "║  11  ║ Buscar Pasajero" . "\n" . "\n" .
 
-        "║  1111  ║ print Empresa" . "\n" . "\n" .
-
-        "║         SALIR        ║" . "\n" . "\n" .
-        "║  0  ║ Salir                               " . "\n";
-
+        "║  111  ║ print Empresa" . "\n" .
+        "║  112  ║ print Viajes" . "\n" .
+        "║  113  ║ print Pasjeros" . "\n" .
+        "║------------SALIR------------║" . "\n" . "\n" .
+        "║  0  ║ Salir                               " . "\n" .
+        "                                   " . "\n" .
+        "---------------Ingrese su opción-----------------" . "\n";
 
     $opcion = fgets(STDIN);
 
 
     switch ($opcion) {
-        case 1111:
-            print_r($colEmpresas);
+        case 112:
+            verViajes();
+            menu($colEmpresas);
+            break;
+        case 113:
+            verPasajeros();
+            menu($colEmpresas);
+            break;
+        case 111:
+            verEmpresas();
             menu($colEmpresas);
             break;
         case 0:
@@ -163,16 +210,16 @@ function menu($colEmpresas)
             echo "Debe indicar la empresa y el responsable del viaje" . "\n";
 
             echo "Ingrese el nombre de la empresa: " . "\n";
-            $nomEmpresa = trim(fgets(STDIN));
+            $idEmp = trim(fgets(STDIN));
             $empresa = new Empresa();
-            $parmEmpresa = $empresa->buscarEmpresa($nomEmpresa);
+            $parmEmpresa = $empresa->buscarEmpresa($idEmp);
             if ($parmEmpresa) {
                 $idEmpresa = $parmEmpresa->getIdEmpresa();
                 //echo "el id de la empresa seleccionada es: ". $idEmpresa. "\n";
                 echo "Ingrese el nombre del Responsable: " . "\n";
-                $nombre = trim(fgets(STDIN));
+                $idResp = trim(fgets(STDIN));
                 $responsable = new ResponsableV();
-                $parmResponsable = $responsable->buscarResponsable($nombre);
+                $parmResponsable = $responsable->buscarResponsable($idResp);
                 if ($parmResponsable) {
                     $idResponsable = $parmResponsable->getIdEmpleado();
 
@@ -186,7 +233,7 @@ function menu($colEmpresas)
                     $costoViaje = fgets(STDIN);
 
                     $viaje = new Viaje();
-                    $newViaje = $viaje->agregarViaje($destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje);
+                    $newViaje = $viaje->agregarViaje($destino, $cantMax, $parmEmpresa, $parmResponsable, $costoViaje);
                     if ($newViaje) {
                         $id = $newViaje->getIdEmpresa();
                         foreach ($colEmpresas as $empresa) {
@@ -355,42 +402,42 @@ function menu($colEmpresas)
                 if ($viajeAux) {
                     $idViaje = $viajeAux->getIdViaje();
                     $cantMax = $viajeAux->getCantMaxPasajeros();
-                    $cantTotal = $viajeAux->getcantPasajeros();
+                    //$cantTotal = $viajeAux->getcantPasajeros();
                     $costo = $viajeAux->getCostoViaje();
-                    if ($cantTotal < $cantMax) {
-                        echo "Indique el nombre del pasajero: " . "\n";
-                        $nombre = trim(fgets(STDIN));
+                    //if ($cantTotal < $cantMax) {
+                    echo "Indique el nombre del pasajero: " . "\n";
+                    $nombre = trim(fgets(STDIN));
 
-                        echo "Indique el apellido del pasajero: " . "\n";
-                        $apellido = trim(fgets(STDIN));
+                    echo "Indique el apellido del pasajero: " . "\n";
+                    $apellido = trim(fgets(STDIN));
 
-                        echo "Indique el teléfono del pasajero: " . "\n";
-                        $telefono = fgets(STDIN);
+                    echo "Indique el teléfono del pasajero: " . "\n";
+                    $telefono = fgets(STDIN);
 
-                        $insPasajero = $pasajero->agregarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
-                        if (!empty($insPasajero)) {
-                            $viaje->venderPasaje($idViaje, $costo);
+                    $insPasajero = $pasajero->agregarPasajero($dni, $nombre, $apellido, $telefono, $viajeAux);
+                    if (!empty($insPasajero)) {
+                        $viaje->venderPasaje($idViaje, $costo);
 
-                            foreach ($colEmpresas as $emp) {
-                                $colViajesEmp = $emp->getViajes();
-                                foreach ($colViajesEmp as $viajesEmp) {
-                                    if ($viajesEmp->getIdViaje() == $idViaje) {
-                                        $colPasajeros = $viajesEmp->getPasajeros();
-                                        $colPasajeros[] = $insPasajero; // Agregar el nuevo pasajero a la colección de pasajeros del viaje
-                                        $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
-                                        echo "Éxito! Los datos del pasajero cargado son: " . $insPasajero . "\n";
-                                        break; // Salir del bucle una vez que se ha encontrado el viaje correspondiente
-                                    }
+                        foreach ($colEmpresas as $emp) {
+                            $colViajesEmp = $emp->getViajes();
+                            foreach ($colViajesEmp as $viajesEmp) {
+                                if ($viajesEmp->getId() == $idViaje) {
+                                    $colPasajeros = $viajesEmp->getPasajeros();
+                                    $colPasajeros[] = $insPasajero; // Agregar el nuevo pasajero a la colección de pasajeros del viaje
+                                    $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
+                                    echo "Éxito! Los datos del pasajero cargado son: " . $insPasajero . "\n";
+                                    break; // Salir del bucle una vez que se ha encontrado el viaje correspondiente
                                 }
                             }
-
-                        } else {
-                            echo "No se pudo cargar al pasajero";
                         }
 
                     } else {
-                        echo "El viaje llegó al límite de su capacidad" . "\n";
+                        echo "No se pudo cargar al pasajero";
                     }
+
+                    //} else {
+                    // echo "El viaje llegó al límite de su capacidad" . "\n";
+                    // }
                 } else {
                     echo "No se encontró el viaje";
                 }

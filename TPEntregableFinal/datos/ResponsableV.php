@@ -86,14 +86,14 @@ class ResponsableV
         return $isOk;
     }
 
-    function buscarResponsable($nomResponsable)
+    function buscarResponsable($idResponsable)
     {
         $isEncontrado = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
 
         if ($resp == 1) {
-            $sql = $this->searchResponsable($nomResponsable); //metodo de acceso a la bd
+            $sql = $this->searchResponsable($idResponsable); //metodo de acceso a la bd
             $respSql = $conx->EjecutarConRetorno($sql);
 
             if ($respSql !== false) {
@@ -167,14 +167,14 @@ class ResponsableV
         return $sql;
     }
 
-    function searchResponsable($nombre)
+    function searchResponsable($id)
     {
-        /*
+       
         $sql = "SELECT * FROM responsable WHERE rnumeroempleado = $id";
         return $sql;
-        */
+         /*
         $sql = "SELECT * FROM responsable WHERE rnombre = '$nombre'";
-        return $sql;
+        return $sql;*/
     }
 }
 ?>

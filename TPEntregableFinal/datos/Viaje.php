@@ -8,11 +8,11 @@ class Viaje
     private $cantMax;
     private $cantPasajeros;
     
-    private $responsable;
+    private $responsable;//objeto reponsable.
     private $costoViaje;
     //private $costosAbonados;
-    private $idEmpresa;
-    private $pasajeros = array();
+    private $empresa;//objeto empresa
+    //private $pasajeros = array();
     //...
     public function setId($id)
     {
@@ -26,24 +26,24 @@ class Viaje
     }
     public function setIdEmpresa($idEmpresa)
     {
-        $this->idEmpresa = $idEmpresa;
+        $this->empresa->setIdEmpresa($idEmpresa);
     }
 
     public function getIdEmpresa()
     {
-        return $this->idEmpresa;
+        return $this->empresa->getIdEmpresa();
     }
-    //...
 
-    public function setResponsable($responsable)
+    public function setResponsable($idResp)
     {
-        $this->responsable = $responsable;
+        $this->responsable->setIdEmpleado($idResp);
     }
 
     public function getResponsable()
     {
-        return $this->responsable;
+        return $this->responsable->getIdEmpleado();
     }
+/*
     public function setCantPasajeros($cantPasajeros)
     {
         $this->cantPasajeros = $cantPasajeros;
@@ -52,7 +52,7 @@ class Viaje
     public function getcantPasajeros()
     {
         return $this->cantPasajeros;
-    }
+    }*/
     //
     //GETTERS
     // 
@@ -166,10 +166,10 @@ class Viaje
         $this->cantMax = "";
         $this->cantPasajeros = 0;
         $this->pasajeros = array();
-        $this->responsable = "";
+        $this->responsable = new ResponsableV();
         $this->costoViaje = 0;
         //$this->costosAbonados = 0;
-        $this->idEmpresa = 0;
+        $this->empresa = new Empresa();
     }
 
 
@@ -181,62 +181,39 @@ class Viaje
     {
         return $this->cantPasajeros < $this->cantMax;
     }
-    public function insertViaje($id, $idEmpresa, $responsable, $destino, $cantMax, $costoViaje, $cantPasajeros)
+    public function insertViaje($id, $idEmp, $idResp, $destino, $cantMax, $costoViaje, $cantPasajeros)
     {
         $this->setId($id);
-        $this->setIdEmpresa($idEmpresa);
-        $this->setResponsable($responsable);
+        $this->setIdEmpresa($idEmp);
+        $this->setResponsable($idResp);
         $this->setDestino($destino);
         $this->setCantMaxPasajeros($cantMax);
         $this->setCostoViaje($costoViaje);
-        $this->setCantPasajeros($cantPasajeros);
+       // $this->setCantPasajeros($cantPasajeros);
     }
-    function agregarViaje($destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje)
-    {
 
+    function agregarViaje($destino, $cantMax, $empresa, $responsable, $costoViaje)
+    {
+      $idEmp = $empresa->getIdEmpresa();
+      $idResp = $responsable->getIdEmpleado();
         $isOk = null;
         //conectarme a la bd para insertar el registro.
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-            $sql = $this->insertarViaje($destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje);
+            $sql = $this->insertarViaje($destino, $cantMax, $idEmp, $idResp, $costoViaje);
+           //respSql es el Id que retorna de la consulta.
             $respSql = $conx->EjecutarRetornaId($sql);
             if ($respSql != -1) {
                 $viaje = new Viaje();
-                $viaje->insertViaje($respSql, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, 0);
+                $viaje->insertViaje($respSql, $destino, $cantMax, $idEmp, $idResp, $costoViaje, 0);
                 $isOk = $viaje;
             }
         }
         return $isOk;
     }
 
-    function buscarViaje($idViaje)
-    {
-        $isEncontrado = null;
-        $conx = new BaseDatos();
-        $resp = $conx->iniciar();
-        if ($resp == 1) {
-            $sql = $this->searchViaje($idViaje); //metodo de acceso a la bd
-            $respSql = $conx->EjecutarConRetorno($sql);
-            if ($respSql !== false) {
-                // La consulta se ejecutó correctamente y se obtuvo un resultado
-                if (!empty($respSql)) { //si no está vacio muestra el viaje encontrado, de lo contrario avisa que no coincide la busqueda.
-                    $id = $respSql['idviaje'];
-                    $destino = $respSql['vdestino'];
-                    $cantMax = $respSql['vcantmaxpasajeros'];
-                    $idEmpresa = $respSql['idempresa'];
-                    $responsable = $respSql['rnumeroempleado'];
-                    $costoViaje = $respSql['vimporte'];
-                    $cantPasajeros = $respSql['cantTotalPasajeros'];
-                    $this->insertViaje($id, $idEmpresa, $responsable, $destino, $cantMax, $costoViaje, $cantPasajeros);
-                    $isEncontrado = $this;
-                }
-            }
-
-        }
-        return $isEncontrado;
-    }
-
+    
 
     public function modificarViaje($idViaje, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje)
     {
@@ -275,6 +252,42 @@ class Viaje
         return $isBorrado;
     }
 
+    function buscarViaje($idViaje)
+    {
+        $isEncontrado = null;
+        $conx = new BaseDatos();
+        $resp = $conx->iniciar();
+        if ($resp == 1) {
+            $sql = $this->searchViaje($idViaje); //metodo de acceso a la bd
+            $respSql = $conx->EjecutarConRetorno($sql);
+            if ($respSql !== false) {
+                // La consulta se ejecutó correctamente y se obtuvo un resultado
+                if (!empty($respSql)) { //si no está vacio muestra el viaje encontrado, de lo contrario avisa que no coincide la busqueda.
+                    $id = $respSql['idviaje'];
+                    $destino = $respSql['vdestino'];
+                    $cantMax = $respSql['vcantmaxpasajeros'];
+                    $idEmpresa = $respSql['idempresa'];
+                    $idResponsable = $respSql['rnumeroempleado'];
+                    $costoViaje = $respSql['vimporte'];
+                    $cantPasajeros = $respSql['cantTotalPasajeros'];
+                    
+                    $empresa = new Empresa();
+                    $empresa->buscarEmpresa($idEmpresa);
+                    $emp = $this->getIdEmpresa($empresa);
+
+                    $responsable = new ResponsableV();
+                    $responsable->buscarResponsable($idResponsable);
+                    $resp = $this->getResponsable($responsable);
+
+                    $this->insertViaje($id, $emp, $resp, $destino, $cantMax, $costoViaje, $cantPasajeros);
+                    $isEncontrado = $this;
+                }
+            }
+
+        }
+        return $isEncontrado;
+    }
+
     public static function listar($condicion = "")
     {
         $arregloViaje = null;
@@ -290,21 +303,16 @@ class Viaje
                 $arregloViaje = array();
                 while ($row = $base->Registro()) {
                     $id = $row['idviaje'];
-                    $destino = $row['vdestino'];
-                    $cantMax = $row['vcantmaxpasajeros'];
-                    $idEmpresa = $row['idempresa'];
-                    $idResponsable = $row['rnumeroempleado'];
-                    $costoViaje = $row['vimporte'];
-                    $cantPasajeros = $row['cantTotalPasajeros'];
-
+                    //buscar viaje
                     $viaje = new Viaje();
-                    $viaje->insertViaje($id, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, $cantPasajeros);
-
+                    $viaje->buscarViaje($id);
+                    //$viajeAux->insertViaje($id, $viajeAux->getDestino(), $viajeAux->getCantMaxPasajeros(), $viajeAux->getIdEmpresa(), $viajeAux->getResponsable(), $viajeAux->getCostoViaje(), $viajeAux->getcantPasajeros());//instancia
+/*
                     $pasajero = new Pasajero();
                     $cond = "idviaje = $id";
                     $colPasajeros = $pasajero->listar($cond);
 
-                    $viaje->setPasajeros($colPasajeros);
+                    $viaje->setPasajeros($colPasajeros);*/
                     array_push($arregloViaje, $viaje);
                 }
             }

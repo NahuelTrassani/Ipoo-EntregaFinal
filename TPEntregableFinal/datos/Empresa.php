@@ -150,13 +150,13 @@ class Empresa
         }
         return $isBorrado;
     }
-    function buscarEmpresa($nomEmpresa)
+    function buscarEmpresa($idEmpresa)
     {
         $isEncontrado = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-            $sql = $this->searchEmpresa($nomEmpresa); //metodo de acceso a la bd
+            $sql = $this->searchEmpresa($idEmpresa); //metodo de acceso a la bd
             $respSql = $conx->EjecutarConRetorno($sql);
             if ($respSql !== false) {
                 // La consulta se ejecutó correctamente y se obtuvo un resultado
@@ -239,9 +239,9 @@ class Empresa
         return $sql;
     }
 
-    function searchEmpresa($enombre)
+    function searchEmpresa($id)
     {
-        $sql = "SELECT * FROM empresa WHERE enombre like '%$enombre%'";
+        $sql = "SELECT * FROM empresa WHERE idempresa = $id";
         return $sql;
     }
 
