@@ -76,10 +76,11 @@ class ResponsableV
         if ($resp == 1) {
             $sql = $this->insertarResponsable($numLicencia, $nombre, $apellido);
             $respSql = $conx->EjecutarRetornaId($sql);
+           
             if ($respSql != -1) {
-
-                $this->insertResponsable($respSql, $nombre, $apellido, $numLicencia);
-                $isOk = $this;
+                $responsable = new ResponsableV();
+                $responsable->insertResponsable($respSql, $nombre, $apellido, $numLicencia);
+                $isOk = $responsable;
             }
         }
         return $isOk;
@@ -103,15 +104,42 @@ class ResponsableV
                     $numLicencia = $respSql['rnumerolicencia'];
                     $nombre = $respSql['rnombre'];
                     $apellido = $respSql['rapellido'];
-
-                    $this->insertResponsable($numEmpleado, $nombre, $apellido, $numLicencia);
-                    $isEncontrado = $this;
+                    $responsable = new ResponsableV();
+                    $responsable->insertResponsable($numEmpleado, $nombre, $apellido, $numLicencia);
+                    $isEncontrado = $responsable;
                 }
             }
         }
         return $isEncontrado;
     }
+    public static function listar($condicion = "")
+    {
+        $arregloResponsables = null;
+        $base = new BaseDatos();
+        $consultaResponsables = "SELECT * FROM responsable ";
+        if ($condicion != "") {
+            $consultaResponsables = $consultaResponsables . ' WHERE ' . $condicion;
+        }
+        $consultaResponsables .= " ORDER BY rapellido ";
 
+        if ($base->Iniciar()) {
+            if ($base->Ejecutar($consultaResponsables)) {
+                $arregloResponsables = array();
+                while ($row = $base->Registro()) {
+                    $numEmpleado = $row['rnumeroempleado'];
+                    $numLicencia = $row['rnumerolicencia'];
+                    $nombre = $row['rnombre'];
+                    $apellido = $row['rapellido'];
+
+                    $responsable = new ResponsableV();
+                    $responsable->insertResponsable($numEmpleado, $nombre, $apellido, $numLicencia);
+                    array_push($arregloResponsables, $responsable);
+                }
+            }
+        }
+
+        return $arregloResponsables;
+    }
 
     // Funciones para la tabla 'responsable'
 

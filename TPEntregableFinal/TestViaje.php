@@ -4,7 +4,7 @@
  * la solicitud de info en el test  ---OOOKKKK
  * delegacion corregir, no es id sino objetos ---OOOKKKK
  * manejo de errores ---OOOKKKK
- * hacer listar 
+ * hacer listar ---OOOKKKK
  * no retorno adentro de un for ---OOOKKKK
  * no haces MOR ---OOOKKKK
  * No modificar la clase base de datos para insert de viaje/y demas tablas, ni insert    ---OOOKKKK
@@ -17,69 +17,13 @@ include "datos/ResponsableV.php";
 include "datos/BaseDatos.php";
 include "datos/Empresa.php";
 
+$empresa = new Empresa();
+$colEmpresas = $empresa->listar();
+//print_r($colEmpresas);
 
-$pasajeros = new Pasajero();
-$colPasajeros = $pasajeros->listar();
-print_r($colPasajeros);
+//ok. Empieza el programa.
+menu($colEmpresas);
 
-/*
-$obj_Empresa = new Empresa();
-
-//Busco todas las personas almacenadas en la BD
-$colEmpresas = $obj_Empresa->obtenerEmpresas();
-foreach ($colEmpresas as $unaEmpresa) {
-
-    echo $unaEmpresa;
-    echo "-------------------------------------------------------";
-}
-$obj_Viaje = new Viaje();
-
-//Busco todas las personas almacenadas en la BD
-$colViajes = $obj_Viaje->listar();
-foreach ($colViajes as $unViaje) {
-
-    echo $unViaje;
-    echo "-------------------------------------------------------";
-}
-*/
-
-
-//VOY A INSTANCIAR TODO AL PRINCIPIO DE LA EJECUCION PARA TENER LAS COLECCIONES DE ENTRADA E IR AGREGANDO INsTANCIAS.
-//$conx = new BaseDatos();
-//$resp = $conx->iniciar();
-//if ($resp == 1) {
-
-    /*  $colEmpresas = inicializarEmpresas($conx);
-      $colChoferes = inicializarResponsable($conx);
-      $colViajes = inicializarViajes($conx);
-      $colPasajeros = inicializarPasajero($conx);
-      print_r($colPasajeros);
-      //una vez que tengo la coleccion de todas las tablas, tengo que instanciar los viajes para las empresas y los pasajeros a los viajes.
-     /* foreach ($colEmpresas as $emp) {
-
-          $idEmpresa = $emp->getIdEmpresa();
-          foreach ($colViajes as $viaje) {
-              if ($viaje->getIdEmpresa() == $idEmpresa) {
-                  $emp->setViaje($viaje);
-              }
-          }
-          //aca se agregaron los viajes correspondientes a cada empresa.
-          //echo $emp;
-      }
-
-      foreach ($colViajes as $viaje) {
-          $idViaje = $viaje->getIdViaje();
-          foreach ($colPasajeros as $pasajero) {
-              if ($pasajero->getVuelo() == $idViaje) {
-                  $viaje->cargarPasajeroVuelo($pasajero);
-              }
-          }
-          //aca se agregaron los pasajeros correspondientes a cada viaje.
-          //echo $viaje;
-      }
-  */
-    //ok. Empieza el programa.
-    //menu($colEmpresas);
 
 
 
@@ -183,7 +127,7 @@ function menu($colEmpresas)
             $nomEmpresa = trim(fgets(STDIN));
             $empresa = new Empresa();
             $dltEmp = $empresa->eliminarEmpresa($nomEmpresa);
-            if ($dltEmp) {
+            if ($dltEmp > 0) {
                 echo "la empresa q se borró tiene id: " . $dltEmp . "\n";
                 foreach ($colEmpresas as $key => $emp) {
                     if ($emp->getIdEmpresa() == $dltEmp) {
@@ -224,6 +168,7 @@ function menu($colEmpresas)
             $parmEmpresa = $empresa->buscarEmpresa($nomEmpresa);
             if ($parmEmpresa) {
                 $idEmpresa = $parmEmpresa->getIdEmpresa();
+                //echo "el id de la empresa seleccionada es: ". $idEmpresa. "\n";
                 echo "Ingrese el nombre del Responsable: " . "\n";
                 $nombre = trim(fgets(STDIN));
                 $responsable = new ResponsableV();
@@ -245,7 +190,7 @@ function menu($colEmpresas)
                     if ($newViaje) {
                         $id = $newViaje->getIdEmpresa();
                         foreach ($colEmpresas as $empresa) {
-                            if ($empresa->getIdEmpresa() == $id) {
+                            if ($empresa->getIdEmpresa() == $idEmpresa) {
                                 $empresa->setViaje($newViaje);
                             }
                         }
@@ -295,12 +240,18 @@ function menu($colEmpresas)
                     if ($updViaje) {
                         foreach ($colEmpresas as $empresa) {
                             $colViajes = $empresa->getViajes();
-                            foreach ($colViajes as $key => $viaje) {
-                                if ($viaje->getId() == $updViaje->getId()) {
-                                    $colViajes[$key] = $updViaje; // Actualizar el viaje en la colección de viajes de la empresa
-                                    break; // Salir del bucle una vez que se ha encontrado el viaje
+
+                            //print_r($colViajes); //no guarda el viaje en la col
+                            foreach ($colViajes as $key => $viajeAux) { {
+                                    if ($viajeAux->getId() == $updViaje->getId()) {
+                                        $colViajes[$key] = $updViaje; // Actualizar el viaje en la colección de viajes de la empresa
+                                        break; // Salir del bucle una vez que se ha encontrado el viaje
+                                    }
+
                                 }
                             }
+                            // Actualizar la colección de viajes en la instancia de la empresa
+                            $empresa->setViaje($colViajes);
                         }
                         echo "Los datos del viaje modificado son: " . $updViaje . "\n";
                     } else {
@@ -317,28 +268,25 @@ function menu($colEmpresas)
         case 6:
             echo "eligió la opción 'Eliminar Viaje'" . "\n";
 
-
             echo "Indique el id del viaje que desea eliminar" . "\n";
             $idViaje = trim(fgets(STDIN));
-
             $viaje = new Viaje();
             $dltViaje = $viaje->eliminarViaje($idViaje);
-
             if ($dltViaje) {
                 foreach ($colEmpresas as $empresa) {
                     $colViajes = $empresa->getViajes();
-
                     foreach ($colViajes as $viaje) {
                         if ($viaje->getId() == $idViaje) {
                             $esElViaje = $viaje;
                             break;
                         }
+                        $empresa->eliminarViaje($esElViaje);
                     }
-                    $empresa->eliminarViaje($esElViaje);
+                    echo "Viaje eliminado con éxito";
                 }
-                echo "Viaje eliminado con éxito";
             } else {
                 echo "No se pudo eliminar el viaje";
+
             }
             //print_r($colEmpresas);
             menu($colEmpresas);
@@ -481,17 +429,36 @@ function menu($colEmpresas)
 
                         $updPasajero = $pasajero->modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono);
 
-                        //borrar al pasajero de la coleccion del viaje y actualizar
-
-                        /*
-                        podria preguntar al pasajero si quiere cambiar de vuelo para poder reubicarlo, 
-                        pero no lo voy a dejar, para eso se debe eliminar el pasajero del vuelo y volver a cargar
-               */
-
-
-
-                        //$colEmpresas = $pasajero->modificarPasajero($dniPasj, $oldIdViaje, $colEmpresas, $nombre, $apellido, $telefono);
-                        //$updPasajero = $pasajero->modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono);
+                        //borrar pasajero col vieja e insertarlo en la col nueva
+                        foreach ($colEmpresas as $emp) {
+                            $colViajesEmp = $emp->getViajes();
+                            foreach ($colViajesEmp as $viajesEmp) {
+                                if ($viajesEmp->getIdViaje() == $oldIdViaje) {
+                                    $colPasajeros = $viajesEmp->getPasajeros();
+                                    foreach ($colPasajeros as $key => $pasajero) {
+                                        if ($pasajero->getDni() == $dniPasj) {
+                                            unset($colPasajeros[$key]); // Eliminar el pasajero de la colección
+                                            break; // Salir del bucle una vez que se ha encontrado y eliminado el pasajero
+                                        }
+                                    }
+                                    $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
+                                    echo "Éxito! El pasajero ha sido eliminado.\n";
+                                }
+                            }
+                        }
+                        //inserta al pasajero en la nueva col de viajes.
+                        foreach ($colEmpresas as $emp) {
+                            $colViajesEmp = $emp->getViajes();
+                            foreach ($colViajesEmp as $viajesEmp) {
+                                if ($viajesEmp->getIdViaje() == $idViaje) {
+                                    $colPasajeros = $viajesEmp->getPasajeros();
+                                    $colPasajeros[] = $updPasajero; // Agregar el nuevo pasajero a la colección de pasajeros del viaje
+                                    $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
+                                    echo "Éxito! Los datos del pasajero cargado son: " . $updPasajero . "\n";
+                                    break; // Salir del bucle una vez que se ha encontrado el viaje correspondiente
+                                }
+                            }
+                        }
 
                     } else {
                         echo "No se encontró al pasajero";
@@ -520,94 +487,6 @@ function menu($colEmpresas)
 
 
 }
-
-
-
-/*
-function inicializarEmpresas($conx)
-{
-    $sql = "SELECT * FROM empresa";
-    $colEmpresasData = $conx->EjecutarConRetornoBidimensional($sql);
-    $colEmpresas = array(); // Colección de instancias de la clase Empresa
-
-    foreach ($colEmpresasData as $empresaData) {
-        $empresa = new Empresa();
-        $empresa->setIdEmpresa($empresaData['idempresa']);
-        $empresa->setEnombre($empresaData['enombre']);
-        $empresa->setEdireccion($empresaData['edireccion']);
-
-        $colEmpresas[] = $empresa;
-    }
-    return $colEmpresas;
-}
-
-function inicializarViajes($conx)
-{
-    $sql2 = "SELECT * FROM viaje";
-    $colViajesData = $conx->EjecutarConRetornoBidimensional($sql2); //el array de viajes debe tener la col pasajeros.
-    foreach ($colViajesData as $viajesData) {
-        $viaje = new Viaje();
-        $viaje->setIdViaje($viajesData['idviaje']);
-        $viaje->setDestino($viajesData['vdestino']);
-        $viaje->setCantMaxPasajeros($viajesData['vcantmaxpasajeros']);
-        $viaje->setResponsable($viajesData['rnumeroempleado']);
-        $viaje->setCostoViaje($viajesData['vimporte']);
-        $viaje->setCantPasajeros($viajesData['cantTotalPasajeros']);
-        $viaje->setIdEmpresa($viajesData['idempresa']);
-        $colViajes[] = $viaje;
-    }
-    return $colViajes;
-}
-
-function inicializarResponsable($conx)
-{
-    $sql3 = "SELECT * FROM responsable";
-    $colChoferesData = $conx->EjecutarConRetornoBidimensional($sql3);
-    foreach ($colChoferesData as $choferesData) {
-        $responsable = new ResponsableV();
-        $responsable->setIdEmpleado($choferesData['rnumeroempleado']);
-        $responsable->setNumLicencia($choferesData['rnumerolicencia']);
-        $responsable->setNombre($choferesData['rnombre']);
-        $responsable->setApellido($choferesData['rapellido']);
-
-
-        $colResponsables[] = $responsable;
-    }
-    return $colResponsables;
-}
-
-function inicializarPasajero($conx)
-{
-    $sql4 = "SELECT * FROM pasajero";
-    $colPasajerosData = $conx->EjecutarConRetornoBidimensional($sql4);
-
-    $colPasajeros = []; // Colección para almacenar las instancias de Pasajero
-
-    foreach ($colPasajerosData as $pasajerosData) {
-        $pasajeroData = [
-            'dni' => $pasajerosData['pdocumento'],
-            'nombre' => $pasajerosData['pnombre'],
-            'apellido' => $pasajerosData['papellido'],
-            'telefono' => $pasajerosData['ptelefono'],
-            'nroVuelo' => $pasajerosData['idviaje']
-        ];
-
-        $colPasajeros[] = $pasajeroData;
-    }
-    
-    foreach ($colPasajerosData as $pasajerosData) {
-        $pasajero = new Pasajero();
-        $pasajero->setDni($pasajerosData['pdocumento']);
-        $pasajero->setNombre($pasajerosData['pnombre']);
-        $pasajero->setApellido($pasajerosData['papellido']);
-        $pasajero->setTelefono($pasajerosData['ptelefono']);
-        $pasajero->setNroVuelo($pasajerosData['idviaje']);
-
-        $colPasajeros[] = $pasajero;
-    }
-
-    return $colPasajeros;
-}*/
 
 
 ?>

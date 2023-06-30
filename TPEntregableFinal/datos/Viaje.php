@@ -2,25 +2,17 @@
 
 class Viaje
 {
-    /**
-     * Variables instancia de la clase Viaje
-     * int $id
-     * string $destino
-     * int $cantMaxPasajeros
-   
-     */
+
     private $id;
     private $destino;
     private $cantMax;
     private $cantPasajeros;
-    private $pasajeros = array();
+    
     private $responsable;
     private $costoViaje;
     //private $costosAbonados;
-
-
     private $idEmpresa;
-
+    private $pasajeros = array();
     //...
     public function setId($id)
     {
@@ -73,13 +65,13 @@ class Viaje
         $output .= "Cantidad de pasajeros: {$this->cantPasajeros}\n";
         $output .= "Responsable: {$this->responsable}\n";
         $output .= "Costo del viaje: {$this->costoViaje}\n";
-        //$output .= "Costos abonados: {$this->costosAbonados}\n";
-        $output .= "Pasajeros:\n";
-
-        foreach ($this->pasajeros as $pasajero) {
-            $output .= $pasajero->getApellido() . ", " . $pasajero->getNombre() . "\n";
-        }
-
+       /* $output .= "Pasajeros:\n";
+        
+            foreach ($this->pasajeros as $pasajero) {
+                $output .= $pasajero->getApellido() . ", " . $pasajero->getNombre() . "\n";
+            }
+       
+*/
         return $output;
     }
     // Obtiene el valor de cantMaxPasajeros
@@ -201,6 +193,7 @@ class Viaje
     }
     function agregarViaje($destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje)
     {
+
         $isOk = null;
         //conectarme a la bd para insertar el registro.
         $conx = new BaseDatos();
@@ -209,8 +202,9 @@ class Viaje
             $sql = $this->insertarViaje($destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje);
             $respSql = $conx->EjecutarRetornaId($sql);
             if ($respSql != -1) {
-                $this->insertViaje($respSql, $idEmpresa, $idResponsable, $destino, $cantMax, $costoViaje, 0);
-                $isOk = $this;
+                $viaje = new Viaje();
+                $viaje->insertViaje($respSql, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, 0);
+                $isOk = $viaje;
             }
         }
         return $isOk;
@@ -253,13 +247,13 @@ class Viaje
             $sql = $this->searchViaje($idViaje);
             $respSql = $conx->EjecutarConRetorno($sql);
             if ($respSql) {
-
                 $sql = $this->actualizarViaje($idViaje, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje);
                 $respSql2 = $conx->Ejecutar($sql);
-                if ($respSql2 == 1) {
 
-                    $this->insertViaje($idViaje, $idEmpresa, $idResponsable, $destino, $cantMax, $costoViaje, 0);
-                    return $this;
+                if ($respSql2 == 1) {
+                    $viaje = new Viaje();
+                    $viaje->insertViaje($idViaje, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, 0);
+                    $isEncontrado = $viaje;
                 }
             }
         }
@@ -272,12 +266,7 @@ class Viaje
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-
-            //aca debo borrar los pasajeros antes que el viaje
-            //$pasajero = new Pasajero();
-            //$resp = $pasajero->eliminarPasajerosViaje($idViaje);
-            //if ($resp) { //si borró todos los pasajeros del viaje avanza.
-            $sql = $this->dltViaje($idViaje);
+            $sql = $this->dltViaje($idViaje); //consulta sql
             $borraIsOk = $conx->Ejecutar($sql);
             if ($borraIsOk == 1) {
                 $isBorrado = true;
@@ -285,62 +274,44 @@ class Viaje
         }
         return $isBorrado;
     }
-    /*
-        public static function listar($condicion = "")
-        {
-            $arregloViaje = null;
-            $base = new BaseDatos();
-            $consultaViajes = "SELECT * FROM viaje ";
-            if ($condicion != "") {
-                $consultaViajes = $consultaViajes . ' WHERE ' . $condicion;
-            }
-            $consultaViajes .= " ORDER BY vdestino ";
 
-            if ($base->Iniciar()) {
-                if ($base->Ejecutar($consultaViajes)) {
-                    $arregloViaje = array();
-                    while ($row = $base->Registro()) {
-                        $id = $row['idviaje'];
-                        $destino = $row['vdestino'];
-                        $cantMax = $row['vcantmaxpasajeros'];
-                        $idEmpresa = $row['idempresa'];
-                        $idResponsable = $row['rnumeroempleado'];
-                        $costoViaje = $row['vimporte'];
-                        $cantPasajeros = $row['cantTotalPasajeros'];
-
-                        $viaje = new Viaje();
-                        $viaje->insertViaje($id, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, $cantPasajeros);
-
-
-                        // Cargar los pasajeros del viaje
-                        $consultaPasajeros = "SELECT * FROM pasajero WHERE idviaje = " . $id;
-                        $base->Ejecutar($consultaPasajeros);
-                        while ($rowPasajero = $base->Registro()) {
-                            $dni = $rowPasajero['pdocumento'];
-                            $nombre = $rowPasajero['pnombre'];
-                            $apellido = $rowPasajero['papellido'];
-                            $tel = $rowPasajero['ptelefono'];
-                            $nroVuelo = $rowPasajero['idviaje'];
-
-                            $pasajero = new Pasajero();
-                            $pasajero->cargarPersona($dni, $nombre, $apellido, $tel, $nroVuelo);
-                        }
-
-
-                        array_push($arregloViaje, $viaje);
-                    }
-                } else {
-                    // Manejar el error en caso de fallo en la ejecución de la consulta
-                    // Puedes utilizar $base->getError() para obtener el mensaje de error
-                }
-            } else {
-                // Manejar el error en caso de fallo en la conexión a la base de datos
-                // Puedes utilizar $base->getError() para obtener el mensaje de error
-            }
-
-            return $arregloViaje;
+    public static function listar($condicion = "")
+    {
+        $arregloViaje = null;
+        $base = new BaseDatos();
+        $consultaViajes = "SELECT * FROM viaje ";
+        if ($condicion != "") {
+            $consultaViajes = $consultaViajes . ' WHERE ' . $condicion;
         }
-    */
+        $consultaViajes .= " ORDER BY vdestino ";
+
+        if ($base->Iniciar()) {
+            if ($base->Ejecutar($consultaViajes)) {
+                $arregloViaje = array();
+                while ($row = $base->Registro()) {
+                    $id = $row['idviaje'];
+                    $destino = $row['vdestino'];
+                    $cantMax = $row['vcantmaxpasajeros'];
+                    $idEmpresa = $row['idempresa'];
+                    $idResponsable = $row['rnumeroempleado'];
+                    $costoViaje = $row['vimporte'];
+                    $cantPasajeros = $row['cantTotalPasajeros'];
+
+                    $viaje = new Viaje();
+                    $viaje->insertViaje($id, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje, $cantPasajeros);
+
+                    $pasajero = new Pasajero();
+                    $cond = "idviaje = $id";
+                    $colPasajeros = $pasajero->listar($cond);
+
+                    $viaje->setPasajeros($colPasajeros);
+                    array_push($arregloViaje, $viaje);
+                }
+            }
+        }
+
+        return $arregloViaje;
+    }
 
     // Funciones para la tabla 'viaje'
 
@@ -350,12 +321,18 @@ class Viaje
         return $sql;
     }
 
-    function actualizarViaje($id, $destino, $cantPasajeros, $idEmpresa, $idResponsable, $importe)
+    function actualizarViaje($idViaje, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje)
     {
-        $sql = "UPDATE viaje SET vdestino = '$destino', vcantmaxpasajeros = $cantPasajeros, idempresa = $idEmpresa, rnumeroempleado = $idResponsable, vimporte = $importe WHERE idviaje = $id";
+        $sql = "UPDATE viaje
+        SET vdestino = '" . $destino . "',
+            vcantmaxpasajeros = " . $cantMax . ",
+            idempresa = " . $idEmpresa . ",
+            rnumeroempleado = " . $idResponsable . ",
+            vimporte = " . $costoViaje . ",
+            cantTotalPasajeros = 0
+        WHERE idviaje = " . $idViaje;
         return $sql;
     }
-
     function dltViaje($id)
     {
         $sql = "DELETE FROM viaje WHERE idviaje = $id";
@@ -373,42 +350,4 @@ class Viaje
         return $sql;
     }
 }
-
-
-
-
-
-
-//codigo realizado para trabajar con colecciones en el objeto TestViaje.php, a partir de añadir una bd al sistema esto
-//queda deprecado.
-
-
-
-
-/*
-
-function buscarViaje($listaViajes, $nroVuelo)
-{
-for ($i = 0; $i < count($listaViajes); $i++) { $encontro=recuperarViaje($listaViajes[$i], $nroVuelo); if ($encontro) {
-    return $listaViajes[$i]; } } } function recuperarViaje($viaje, $nroVuelo) { $id=$viaje->getIdViaje();
-    if ($viaje->getIdViaje() == $nroVuelo) {
-    //echo "encontró!!";
-    return true;
-    } else {
-    //echo "NOOOO encontró";
-    return false;
-    }
-
-    //$des = $viaje->getDestino();
-    //echo "Destino: " . $des;
-    }
-
-
-    function listarViajes($listaViajes)
-    {
-    for ($i = 0; $i < count($listaViajes); $i++) { $viaje=$listaViajes[$i]; echo "Datos viaje: " . "\n" . "Destino: " .
-        $viaje->getDestino() . "\n" . "Cantidad máxima de pasajeros: " . $viaje->getCantMaxPasajeros() . "\n";
-        }
-        }
-        */
 ?>

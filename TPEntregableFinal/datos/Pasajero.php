@@ -232,6 +232,7 @@ class Pasajero
                     $pasajero = new Pasajero();
                     $pasajero->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
                     array_push($arregloPersona, $pasajero);
+
                 }
             }
         }

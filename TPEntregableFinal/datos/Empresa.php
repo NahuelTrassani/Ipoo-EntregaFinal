@@ -20,7 +20,7 @@ class Empresa
 
     public function setViaje($viaje)
     {
-        $this->viajes[] = $viaje;
+        $this->viajes = $viaje;
     }
 
     public function eliminarViaje($viaje)
@@ -35,16 +35,16 @@ class Empresa
     public function __toString()
     {
         $empresaInfo = "Id de la empresa: " . $this->getIdEmpresa() . "\n" . "Nombre de la empresa: " . $this->getEnombre() . "\nDirección de la empresa: " . $this->getEdireccion() . "\n";
-
-        if (!empty($this->viajes)) {
-            $empresaInfo .= "Viajes:\n";
-            foreach ($this->viajes as $viaje) {
-                $empresaInfo .= $viaje->__toString() . "\n";
-            }
-        } else {
-            $empresaInfo .= "No se han registrado viajes.\n";
-        }
-
+        
+                if (!empty($this->viajes)) {
+                    $empresaInfo .= "Viajes:\n";
+                    foreach ($this->viajes as $viaje) {
+                        $empresaInfo .= $viaje . "\n";
+                    }
+                } else {
+                    $empresaInfo .= "No se han registrado viajes.\n";
+                }
+        
         return $empresaInfo;
     }
 
@@ -94,8 +94,9 @@ class Empresa
             $sql = $this->insertarEmpresa($nomEmpresa, $dirEmpresa);
             $id = $conx->EjecutarRetornaId($sql);
             if ($id != -1) {
-                $this->cargarEmpresa($id, $nomEmpresa, $dirEmpresa);
-                $retorno = $this;
+                $emp = new Empresa();
+                $emp->cargarEmpresa($id, $nomEmpresa, $dirEmpresa);
+                $retorno = $emp;
             }
         }
         return $retorno;
@@ -116,9 +117,9 @@ class Empresa
                 $sql = $this->actualizarEmpresa($idEmpresa, $newNomEmpresa, $dirEmpresa);
                 $respSql2 = $conx->Ejecutar($sql);
                 if ($respSql2 == 1) {
-
-                    $this->cargarEmpresa($idEmpresa, $nomEmpresa, $dirEmpresa);
-                    $isOk = $this;
+                    $emp = new Empresa();
+                    $emp->cargarEmpresa($idEmpresa, $newNomEmpresa, $dirEmpresa);
+                    $isOk = $emp;
                 }
             }
         }
@@ -129,7 +130,7 @@ class Empresa
     public function eliminarEmpresa($nomEmpresa)
     {
 
-
+        $isBorrado = 0;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
@@ -142,15 +143,12 @@ class Empresa
                 $sql2 = $this->borrarEmpresa($idEmpresa);
                 $borraIsOk = $conx->Ejecutar($sql2);
                 if ($borraIsOk == 1) {
-                    echo "Se borró la empresa de manera exitosa" . "\n";
-                    return $idEmpresa;
-                } else {
-                    echo "Falló el borrado de la empresa" . "\n";
-                    return 0;
+                    $isBorrado = $idEmpresa;
                 }
 
             }
         }
+        return $isBorrado;
     }
     function buscarEmpresa($nomEmpresa)
     {
@@ -166,86 +164,55 @@ class Empresa
                     $idEmpresa = $respSql['idempresa'];
                     $enombre = $respSql['enombre'];
                     $edireccion = $respSql['edireccion'];
-                    $this->cargarEmpresa($idEmpresa, $enombre, $edireccion);
-                    $isEncontrado = $this;
+
+                    $emp = new Empresa();
+                    $emp->cargarEmpresa($idEmpresa, $enombre, $edireccion);
+                    $isEncontrado = $emp;
                 }
             }
         }
         return $isEncontrado;
     }
 
-/*
     public static function listar($condicion = "")
     {
         $arregloEmpresa = null;
         $base = new BaseDatos();
-        $consultaEmpresas = "SELECT * FROM empresa ";
+        $consultaEmpresa = "Select * from empresa ";
         if ($condicion != "") {
-            $consultaEmpresas = $consultaEmpresas . ' WHERE ' . $condicion;
+            $consultaEmpresa = $consultaEmpresa . ' where ' . $condicion;
         }
-        $consultaEmpresas .= " ORDER BY enombre ";
-
+        $consultaEmpresa .= " order by enombre ";
+        //echo $consultaPersonas;
         if ($base->Iniciar()) {
-            if ($base->Ejecutar($consultaEmpresas)) {
+            if ($base->Ejecutar($consultaEmpresa)) {
                 $arregloEmpresa = array();
-                while ($row = $base->Registro()) {
-                    $id = $row['idempresa'];
-                    $nombre = $row['enombre'];
-                    $direccion = $row['edireccion'];
+                while ($row2 = $base->Registro()) {
 
-                    $empresa = new Empresa();
-                    $empresa->cargarEmpresa($id, $nombre, $direccion);
+                    $idEmpresa = $row2['idempresa'];
+                    $enombre = $row2['enombre'];
+                    $edireccion = $row2['edireccion'];
 
-                    // Cargar los viajes de la empresa
-                    $consultaViajes = "SELECT * FROM viaje WHERE idempresa = " . $id;
-                    $base->Ejecutar($consultaViajes);
-                    while ($rowViaje = $base->Registro()) {
-                        $viaje = new Viaje();
-                        // Cargar los datos del viaje...
 
-                        // Agregar el viaje a la empresa
-                        $empresa->setViaje($viaje);
-                    }
+                    $emp = new Empresa();
+                    $emp->cargarEmpresa($idEmpresa, $enombre, $edireccion);
 
-                    array_push($arregloEmpresa, $empresa);
+                    $viaje = new Viaje();
+                    $cond = "idempresa = $idEmpresa";
+                    $colViajeAux = $viaje->listar($cond);
+
+                    $emp->setViaje($colViajeAux);
+                    array_push($arregloEmpresa, $emp);
                 }
-            } else {
-                // Manejar el error en caso de fallo en la ejecución de la consulta
-                // Puedes utilizar $base->getError() para obtener el mensaje de error
             }
-        } else {
-            // Manejar el error en caso de fallo en la conexión a la base de datos
-            // Puedes utilizar $base->getError() para obtener el mensaje de error
-        }
 
+        }
         return $arregloEmpresa;
     }
-    */
-    /*
 
-        public function obtenerEmpresas()
-        {
-            $empresas = array();
-             $conx = new BaseDatos();
-            // Realiza la consulta para obtener las empresas
-            $consulta = "SELECT * FROM empresa";
-            $resultado = $this->CONEXION->query($consulta);
 
-            // Verifica si la consulta devuelve resultados
-            if ($resultado->num_rows > 0) {
-                // Recorre los resultados y crea objetos Empresa
-                while ($fila = $resultado->fetch_assoc()) {
-                    $empresa = new Empresa();
-                    $empresa->setIdEmpresa($fila['idempresa']);
-                    $empresa->setEnombre($fila['enombre']);
-                    $empresa->setEdireccion($fila['edireccion']);
-                    $empresas[] = $empresa;
-                }
-            }
 
-            return $empresas;
-        }
-        */
+
 
     // ejecucciones sql
 

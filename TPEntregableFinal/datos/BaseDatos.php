@@ -95,7 +95,6 @@ class BaseDatos
 /**
      * Ejecuta una consulta en la Base de Datos.
      * Recibe la consulta en una cadena enviada por parametro.
-     *MODIFICADO PARA DEVOLVER EL ID DE LA CONSULTA EN CASO DE EJECUCION SATISFACTORIA. -1 SI DA ERROR.
      * @param string $consulta
      * @return boolean
      */
