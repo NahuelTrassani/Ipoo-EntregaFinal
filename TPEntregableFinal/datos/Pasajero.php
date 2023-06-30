@@ -9,7 +9,16 @@ class Pasajero
     private $nroVuelo;
     private $numeroAsiento;
     private $numeroTicket;
+    private $mensajeoperacion;
 
+    public function setmensajeoperacion($mensajeoperacion)
+    {
+        $this->mensajeoperacion = $mensajeoperacion;
+    }
+    public function getmensajeoperacion()
+    {
+        return $this->mensajeoperacion;
+    }
     //
     //GETTERS
     // 
@@ -143,166 +152,122 @@ class Pasajero
         $this->setVuelo($nroVuelo);
     }
 
-    function agregarPasajero()
+    public function agregarPasajero($dni, $nombre, $apellido, $telefono, $idViaje)
     {
-
-        echo "Indique el Dni del pasajero (numérico): " . "\n";
-        $dni = trim(fgets(STDIN));
-        $respSql = $this->buscarPasajero($dni);
-        if ($respSql) {
-            echo "el pasajero ya se encuentra cargado. VIAJE EN PASAJERO ES UN FK NO PRIMARY, POR LO TANTO NO PUEDO REPETIR EL DNI, POR ENDE EL PASAJERO NO PUEDE ESTAR EN MAS DE UN VIAJE." . "\n";
-        } else {
-
-            echo "Indique el nombre del pasajero: " . "\n";
-            $nombre = trim(fgets(STDIN));
-
-            echo "Indique el apellido del pasajero: " . "\n";
-            $apellido = trim(fgets(STDIN));
-
-            echo "Indique el teléfono del pasajero: " . "\n";
-            $telefono = fgets(STDIN);
-
-            echo "SE BUSCARA EL VIAJE PARA INSERTAR AL PASAJERO." . "\n";
-            echo "TENGA EN CUENTA QUE EL ID DEBE EXISTIR EN LA TABLA CORRESPONDIENTE PORQUE NO ESTOY VALIANDO QUE HAYA ERROR." . "\n";
-            $viaje = new Viaje();
-            $respSql = $viaje->buscarViaje();
-            $idViaje = $respSql['idviaje'];
-            $cantMax = $respSql['vcantmaxpasajeros'];
-            $cantTotal = $respSql['cantTotalPasajeros'];
-            if ($cantTotal < $cantMax) {
-                $conx = new BaseDatos();
-                $resp = $conx->iniciar();
-                if ($resp == 1) {
-                    $sql = $conx->insertarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
-                    $respSql = $conx->Ejecutar($sql);
-                    if ($respSql == 1) {
-                        $this->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
-                        $costo = $this->darPorcentajeIncremento();
-                        $respuesta = $viaje->venderPasajeColeccion($costo);
-                        $viaje->venderPasaje($idViaje);
-                        echo "Pasajero cargado con éxito" . "\n";
-                        echo "el monto total a pagar es  " . $respuesta . "\n";
-                        return $this;
-                    } else {
-                        echo "Error insertando Pasajero" . "\n";
-                    }
-                } else {
-                    echo "Error conectando a la bd" . "\n";
-                }
-            } else {
-                echo "El viaje llegó al límite de su capacidad" . "\n";
-            }
-
-        }
-    }
-
-    function buscarPasajero($documento)
-    {
-
+        $pasajero = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-            $sql = $conx->buscarPasajero($documento);
-            $respSql = $conx->EjecutarConRetornoBidimensional($sql);
+            $sql = $this->insertarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
+            $respSql = $conx->Ejecutar($sql);
+            if ($respSql == 1) {
+                $this->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                $pasajero = $this;
+            }
+        }
+        return $pasajero;
+    }
+
+
+    public function buscarPasajero($documento)
+    {
+        $isEncontrado = false;
+        $conx = new BaseDatos();
+        $resp = $conx->iniciar();
+        if ($resp == 1) {
+            $sql = $this->searchPasajero($documento);
+            $respSql = $conx->EjecutarConRetorno($sql);
             if ($respSql !== false) {
-                // La consulta se ejecutó correctamente y se obtuvo un resultado
-                if (!empty($respSql)) { //si no está vacio muestra el pasajero encontrado, de lo contrario avisa que no coincide la busqueda.
-                    print_r($respSql);
-                    // $pasajero = $respSql['pdocumento'];
 
-                    return $respSql;
-                } else {
-                    echo "No se encontró pasajero para ese dni" . "\n";
+                if (!empty($respSql)) {
+                    $dni = $respSql['pdocumento'];
+                    $nombre = $respSql['pnombre'];
+                    $apellido = $respSql['papellido'];
+                    $telefono = $respSql['ptelefono'];
+                    $idViaje = $respSql['idviaje'];
+                    $this->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                    $isEncontrado = $this;
                 }
-            } else {
-                echo "la consulta no se ejecutó correctamente" . "\n";
             }
         }
+        return $isEncontrado;
     }
 
-    function buscarPasajeroV2($colEmpresas, $documento)
+    public function modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono)
     {
-        foreach ($colEmpresas as $empresas) {
-            $viajes = $empresas->getViajes();
-            foreach ($viajes as $viaje) {
-                $pasajeros = $viaje->getPasajeros();
-                foreach ($pasajeros as $pasajero) {
-                    if ($pasajero->getDni() == $documento) {
-                        return $pasajero;
-                    }
-                }
+        $pasajero = null;
+        $conx = new BaseDatos();
+        $resp = $conx->iniciar();
+        if ($resp == 1) {
+            $sql = $this->actualizarPasajero($dniPasj, $nombre, $apellido, $telefono, $idViaje);
+            $respSql = $conx->Ejecutar($sql);
+            if ($respSql == 1) {
+                $this->cargarPersona($dniPasj, $nombre, $apellido, $telefono, $idViaje);
+                $pasajero = $this;
             }
         }
+        return $pasajero;
     }
-
-    function modificarPasajero($documento, $oldIdViaje, $colEmpresas)
+    public static function listar($condicion = "")
     {
-
-        echo "Indique el nombre del pasajero: " . "\n";
-        $nombre = trim(fgets(STDIN));
-
-        echo "Indique el apellido del pasajero: " . "\n";
-        $apellido = trim(fgets(STDIN));
-
-        echo "Indique el teléfono del pasajero: " . "\n";
-        $telefono = fgets(STDIN);
-
-        echo "SE BUSCARA EL VIAJE PARA INSERTAR AL PASAJERO." . "\n";
-        echo "TENGA EN CUENTA QUE EL ID DEBE EXISTIR EN LA TABLA CORRESPONDIENTE PORQUE NO ESTOY VALIANDO QUE HAYA ERROR." . "\n";
-
-        $viaje = new Viaje();
-        $respSql = $viaje->buscarViaje();
-        $idViaje = $respSql['idviaje'];
-        $isOk = false;
-
-        if ($oldIdViaje == $idViaje) { //si cambia de vuelo tiene que eliminarlo del vuelo anterior y depositarlo en el nuevo vuelo
-            $isOk = true;
-        } else {
-            $isOk = false;
-            //echo "eliminiar al usuario de la col viajes para insertarlo en la col viajes nueva asignada.";
-            $this->borrarPasajeroV2($colEmpresas, $documento);
-            // Buscar la nueva empresa basándote en el idViaje seleccionado
-            foreach ($colEmpresas as $empresa) {
-                foreach ($empresa->getViajes() as $viaje) {
-                    if ($viaje->getId() == $idViaje) {
-                        $nuevaEmpresa = $empresa;
-                        break 2; // Salir de ambos bucles
-                    }
-                }
-            }
-            // Verificar si se encontró la nueva empresa correspondiente
-            if ($nuevaEmpresa != null) {
-
-                // Insertar al usuario en la nueva colección de viajes seleccionada
-                foreach ($nuevaEmpresa->getViajes() as $viaje) {
-                    if ($viaje->getId() == $idViaje) {
-                        $viaje->cargarPasajeroVuelo($this);
-                        $isOk = true;
-                        break; // Salir del bucle
-                    }
-                }
-            } else {
-                echo "No se encontró la empresa correspondiente al nuevo viaje seleccionado.";
-            }
+        $arregloPersona = null;
+        $base = new BaseDatos();
+        $consultaPersonas = "Select * from pasajero ";
+        if ($condicion != "") {
+            $consultaPersonas = $consultaPersonas . ' where ' . $condicion;
         }
-        //echo "salio todo piola".$isOk."\n";
-        if ($isOk) {
-            $conx = new BaseDatos();
-            $resp = $conx->iniciar();
-            if ($resp == 1) {
-                $sql = $conx->actualizarPasajero($documento, $nombre, $apellido, $telefono, $idViaje);
-                $respSql = $conx->Ejecutar($sql);
-                if ($respSql == 1) {
-                    echo "Pasajero actualizado con éxito" . "\n";
-                    $this->cargarPersona($documento, $nombre, $apellido, $telefono, $idViaje);
-                    return $colEmpresas;
-                } else {
-                    echo "Error en la actualización de pasajero" . "\n";
+        $consultaPersonas .= " order by papellido ";
+        //echo $consultaPersonas;
+        if ($base->Iniciar()) {
+            if ($base->Ejecutar($consultaPersonas)) {
+                $arregloPersona = array();
+                while ($row2 = $base->Registro()) {
+
+                    $dni = $row2['pdocumento'];
+                    $nombre = $row2['pnombre'];
+                    $apellido = $row2['papellido'];
+                    $telefono = $row2['ptelefono'];
+                    $idViaje = $row2['idviaje'];
+
+                    $pasajero = new Pasajero();
+                    $pasajero->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                    array_push($arregloPersona, $pasajero);
                 }
             }
         }
+
+        return $arregloPersona;
     }
 
+    /*
+                    //echo "eliminiar al usuario de la col viajes para insertarlo en la col viajes nueva asignada.";
+                    $this->borrarPasajeroV2($colEmpresas, $documento);
+                    // Buscar la nueva empresa basándote en el idViaje seleccionado
+                    foreach ($colEmpresas as $empresa) {
+                        foreach ($empresa->getViajes() as $viaje) {
+                            if ($viaje->getId() == $idViaje) {
+                                $nuevaEmpresa = $empresa;
+                                break 2; // Salir de ambos bucles
+                            }
+                        }
+                    }
+                    // Verificar si se encontró la nueva empresa correspondiente
+                    if ($nuevaEmpresa != null) {
+
+                        // Insertar al usuario en la nueva colección de viajes seleccionada
+                        foreach ($nuevaEmpresa->getViajes() as $viaje) {
+                            if ($viaje->getId() == $idViaje) {
+                                $viaje->cargarPasajeroVuelo($this);
+                                $isOk = true;
+                                break; // Salir del bucle
+                            }
+                        }
+                    } else {
+                        echo "No se encontró la empresa correspondiente al nuevo viaje seleccionado.";
+                    }
+                }
+           */
+    /*
     function eliminarPasajerosViaje($idViaje)
     {
 
@@ -348,5 +313,37 @@ class Pasajero
             }
         }
     }
+*/
+    // Funciones para la tabla 'pasajero'
+
+    function insertarPasajero($documento, $nombre, $apellido, $telefono, $idViaje)
+    {
+        $sql = "INSERT INTO pasajero (pdocumento, pnombre, papellido, ptelefono, idviaje) VALUES ('$documento', '$nombre', '$apellido', $telefono, $idViaje)";
+        return $sql;
+    }
+
+    function actualizarPasajero($documento, $nombre, $apellido, $telefono, $idViaje)
+    {
+        $sql = "UPDATE pasajero SET pnombre = '$nombre', papellido = '$apellido', ptelefono = $telefono, idviaje = $idViaje WHERE pdocumento = '$documento'";
+        return $sql;
+    }
+
+    function eliminarPasajero($documento)
+    {
+        $sql = "DELETE FROM pasajero WHERE pdocumento = '$documento'";
+        return $sql;
+    }
+    function listarPasajeros()
+    {
+        $sql = "SELECT * FROM pasajero";
+        return $sql;
+    }
+
+    function searchPasajero($documento)
+    {
+        $sql = "SELECT * FROM pasajero WHERE pdocumento = '$documento'";
+        return $sql;
+    }
+
 }
 ?>

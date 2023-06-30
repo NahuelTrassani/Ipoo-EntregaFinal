@@ -19,14 +19,15 @@ class ResponsableV
         return "\n" . "Responsable: " . $this->apellido . ", " . $this->nombre . "\n" . "Id de empleado: " . $this->idEmpleado . "Numero de licencia: " . $this->numLicencia . "\n";
     }
 
-   
-    public function insertResponsable($idEmpleado,$nombre, $apellido, $numLicencia){		
+
+    public function insertResponsable($idEmpleado, $nombre, $apellido, $numLicencia)
+    {
         $this->setIdEmpleado($idEmpleado);
         $this->setNombre($nombre);
         $this->setApellido($apellido);
         $this->setNumLicencia($numLicencia);
     }
-    
+
     public function getIdEmpleado()
     {
         return $this->idEmpleado;
@@ -67,39 +68,85 @@ class ResponsableV
         $this->apellido = $apellido;
     }
 
-    public function cargarResponsable()
+    public function cargarResponsable($numLicencia, $nombre, $apellido)
     {
-        echo "Ingrese los datos del responsable del vuelo: " . "\n";
-
-        echo "Numero de licencia" . "\n";
-        $numLicencia = fgets(STDIN);
-
-        echo "Nombre" . "\n";
-        $nombre = trim(fgets(STDIN));
-
-        echo "Apellido: " . "\n";
-        $apellido = trim(fgets(STDIN));
-        /*
-        echo "numEmpleado: " . "\n";
-        $numEmpleado = fgets(STDIN);
-        */
-        //conectarme a la bd para insertar el registro.
+        $isOk = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-            $sql = $conx->insertarResponsable($numLicencia, $nombre, $apellido);
+            $sql = $this->insertarResponsable($numLicencia, $nombre, $apellido);
             $respSql = $conx->EjecutarRetornaId($sql);
             if ($respSql != -1) {
-                echo "Responsable cargado con éxito";
+
                 $this->insertResponsable($respSql, $nombre, $apellido, $numLicencia);
-                return $this;
-            } else {
-                echo "error insertando responsable";
+                $isOk = $this;
             }
-        } else {
-            echo "error conectando a la bd";
         }
+        return $isOk;
+    }
+
+    function buscarResponsable($nomResponsable)
+    {
+        $isEncontrado = null;
+        $conx = new BaseDatos();
+        $resp = $conx->iniciar();
+
+        if ($resp == 1) {
+            $sql = $this->searchResponsable($nomResponsable); //metodo de acceso a la bd
+            $respSql = $conx->EjecutarConRetorno($sql);
+
+            if ($respSql !== false) {
+                // La consulta se ejecutó correctamente y se obtuvo un resultado
+                if ($respSql) {
+
+                    $numEmpleado = $respSql['rnumeroempleado'];
+                    $numLicencia = $respSql['rnumerolicencia'];
+                    $nombre = $respSql['rnombre'];
+                    $apellido = $respSql['rapellido'];
+
+                    $this->insertResponsable($numEmpleado, $nombre, $apellido, $numLicencia);
+                    $isEncontrado = $this;
+                }
+            }
+        }
+        return $isEncontrado;
+    }
+
+
+    // Funciones para la tabla 'responsable'
+
+    function insertarResponsable($licencia, $nombre, $apellido)
+    {
+        $sql = "INSERT INTO responsable (rnumerolicencia, rnombre, rapellido) VALUES ($licencia, '$nombre', '$apellido')";
+        return $sql;
+    }
+
+    function actualizarResponsable($id, $licencia, $nombre, $apellido)
+    {
+        $sql = "UPDATE responsable SET rnumerolicencia = $licencia, rnombre = '$nombre', rapellido = '$apellido' WHERE rnumeroempleado = $id";
+        return $sql;
+    }
+
+    function eliminarResponsable($id)
+    {
+        $sql = "DELETE FROM responsable WHERE rnumeroempleado = $id";
+        return $sql;
+    }
+
+    function listarResponsables()
+    {
+        $sql = "SELECT * FROM responsable";
+        return $sql;
+    }
+
+    function searchResponsable($nombre)
+    {
+        /*
+        $sql = "SELECT * FROM responsable WHERE rnumeroempleado = $id";
+        return $sql;
+        */
+        $sql = "SELECT * FROM responsable WHERE rnombre = '$nombre'";
+        return $sql;
     }
 }
-
 ?>

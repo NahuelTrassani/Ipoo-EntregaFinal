@@ -69,7 +69,11 @@ class BaseDatos
      * Ejecuta una consulta en la Base de Datos.
      * Recibe la consulta en una cadena enviada por parametro.
      *MODIFICADO PARA DEVOLVER EL ID DE LA CONSULTA EN CASO DE EJECUCION SATISFACTORIA. -1 SI DA ERROR.
-     * @param string $consulta
+     *
+     * 
+     * DE LA OTRA MANERA SE EJECUTABA 2 VECES LA CONSULTA
+     * 
+     *  @param string $consulta
      * @return boolean
      */
     public function EjecutarRetornaId($consulta)
@@ -95,17 +99,14 @@ class BaseDatos
      * @param string $consulta
      * @return boolean
      */
-    public function Ejecutar($consulta)
-    {
-        $resp = false;
+    public function Ejecutar($consulta){
+        $resp  = false;
         unset($this->ERROR);
         $this->QUERY = $consulta;
-        $ejecutar = mysqli_query($this->CONEXION, $consulta);
-        if ($this->RESULT = $ejecutar) {
+        if(  $this->RESULT = mysqli_query( $this->CONEXION,$consulta)){
             $resp = true;
         } else {
-            $id = -1;
-            $this->ERROR = mysqli_errno($this->CONEXION) . ": " . mysqli_error($this->CONEXION);
+            $this->ERROR =mysqli_errno( $this->CONEXION).": ". mysqli_error( $this->CONEXION);
         }
         return $resp;
     }
@@ -160,7 +161,7 @@ class BaseDatos
             if ($temp = mysqli_fetch_assoc($this->RESULT)) {
                 $resp = $temp;
             } else {
-                mysqli_free_result($this->RESULT);
+               //mysqli_free_result($this->RESULT); //da error esa linea para los listar
             }
         } else {
             $this->ERROR = mysqli_errno($this->CONEXION) . ": " . mysqli_error($this->CONEXION);
@@ -191,152 +192,5 @@ class BaseDatos
     }
 
 
-    // Funciones para la tabla 'empresa'
-
-    function insertarEmpresa($nombre, $direccion)
-    {
-        $sql = "INSERT INTO empresa (enombre, edireccion) VALUES ('$nombre', '$direccion')";
-        return $sql;
-    }
-    function actualizarEmpresa($id, $nombre, $direccion)
-    {
-        $sql = "UPDATE empresa SET enombre = '$nombre', edireccion = '$direccion' WHERE idempresa = $id";
-        return $sql;
-    }
-
-    function eliminarEmpresa($id)
-    {
-        $sql = "DELETE FROM empresa WHERE idempresa = $id";
-        return $sql;
-    }
-
-    function listarEmpresas()
-    {
-        $sql = "SELECT * FROM empresa";
-        return $sql;
-    }
-
-    function buscarEmpresa($enombre)
-    {
-        $sql = "SELECT * FROM empresa WHERE enombre like '%$enombre%'";
-        return $sql;
-    }
-
-    // Funciones para la tabla 'responsable'
-
-    function insertarResponsable($licencia, $nombre, $apellido)
-    {
-        $sql = "INSERT INTO responsable (rnumerolicencia, rnombre, rapellido) VALUES ($licencia, '$nombre', '$apellido')";
-        return $sql;
-    }
-
-    function actualizarResponsable($id, $licencia, $nombre, $apellido)
-    {
-        $sql = "UPDATE responsable SET rnumerolicencia = $licencia, rnombre = '$nombre', rapellido = '$apellido' WHERE rnumeroempleado = $id";
-        return $sql;
-    }
-
-    function eliminarResponsable($id)
-    {
-        $sql = "DELETE FROM responsable WHERE rnumeroempleado = $id";
-        return $sql;
-    }
-
-    function listarResponsables()
-    {
-        $sql = "SELECT * FROM responsable";
-        return $sql;
-    }
-
-    function buscarResponsable($id)
-    {
-        $sql = "SELECT * FROM responsable WHERE rnumeroempleado = $id";
-        return $sql;
-    }
-    // Funciones para la tabla 'viaje'
-
-    function insertarViaje($destino, $cantPasajeros, $idEmpresa, $idResponsable, $importe)
-    {
-        $sql = "INSERT INTO viaje (vdestino, vcantmaxpasajeros, idempresa, rnumeroempleado, vimporte) VALUES ('$destino', $cantPasajeros, $idEmpresa, $idResponsable, $importe)";
-        return $sql;
-    }
-
-    function actualizarViaje($id, $destino, $cantPasajeros, $idEmpresa, $idResponsable, $importe)
-    {
-        $sql = "UPDATE viaje SET vdestino = '$destino', vcantmaxpasajeros = $cantPasajeros, idempresa = $idEmpresa, rnumeroempleado = $idResponsable, vimporte = $importe WHERE idviaje = $id";
-        return $sql;
-    }
-
-    function eliminarViaje($id)
-    {
-        $sql = "DELETE FROM viaje WHERE idviaje = $id";
-        return $sql;
-    }
-    function listarViajes()
-    {
-        $sql = "SELECT * FROM viaje";
-        return $sql;
-    }
-
-    function buscarViaje($id)
-    {
-        $sql = "SELECT * FROM viaje WHERE idviaje = $id";
-        return $sql;
-    }
-
-    // Funciones para la tabla 'pasajero'
-
-    function insertarPasajero($documento, $nombre, $apellido, $telefono, $idViaje)
-    {
-        $sql = "INSERT INTO pasajero (pdocumento, pnombre, papellido, ptelefono, idviaje) VALUES ('$documento', '$nombre', '$apellido', $telefono, $idViaje)";
-        return $sql;
-    }
-
-    function actualizarPasajero($documento, $nombre, $apellido, $telefono, $idViaje)
-    {
-        $sql = "UPDATE pasajero SET pnombre = '$nombre', papellido = '$apellido', ptelefono = $telefono, idviaje = $idViaje WHERE pdocumento = '$documento'";
-        return $sql;
-    }
-
-    function eliminarPasajero($documento)
-    {
-        $sql = "DELETE FROM pasajero WHERE pdocumento = '$documento'";
-        return $sql;
-    }
-    function listarPasajeros()
-    {
-        $sql = "SELECT * FROM pasajero";
-        return $sql;
-    }
-
-    function buscarPasajero($documento)
-    {
-        $sql = "SELECT * FROM pasajero WHERE pdocumento = '$documento'";
-        return $sql;
-    }
-
-
-    public function obtenerEmpresas()
-    {
-        $empresas = array();
-
-        // Realiza la consulta para obtener las empresas
-        $consulta = "SELECT * FROM empresa";
-        $resultado = $this->CONEXION->query($consulta);
-
-        // Verifica si la consulta devuelve resultados
-        if ($resultado->num_rows > 0) {
-            // Recorre los resultados y crea objetos Empresa
-            while ($fila = $resultado->fetch_assoc()) {
-                $empresa = new Empresa();
-                $empresa->setIdEmpresa($fila['idempresa']);
-                $empresa->setEnombre($fila['enombre']);
-                $empresa->setEdireccion($fila['edireccion']);
-                $empresas[] = $empresa;
-            }
-        }
-
-        return $empresas;
-    }
 }
 ?>
