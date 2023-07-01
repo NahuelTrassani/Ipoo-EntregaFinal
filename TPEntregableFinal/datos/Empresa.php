@@ -35,16 +35,7 @@ class Empresa
     public function __toString()
     {
         $empresaInfo = "Id de la empresa: " . $this->getIdEmpresa() . "\n" . "Nombre de la empresa: " . $this->getEnombre() . "\nDirección de la empresa: " . $this->getEdireccion() . "\n";
-        
-                if (!empty($this->viajes)) {
-                    $empresaInfo .= "Viajes:\n";
-                    foreach ($this->viajes as $viaje) {
-                        $empresaInfo .= $viaje . "\n";
-                    }
-                } else {
-                    $empresaInfo .= "No se han registrado viajes.\n";
-                }
-        
+
         return $empresaInfo;
     }
 
@@ -102,23 +93,23 @@ class Empresa
         return $retorno;
     }
 
-    public function modificarEmpresa($nomEmpresa, $newNomEmpresa, $dirEmpresa)
+    public function modificarEmpresa($id, $newNomEmpresa, $dirEmpresa)
     {
         $isOk = "";
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
 
         if ($resp == 1) {
-            $sql = $this->searchEmpresa($nomEmpresa);
+            $sql = $this->searchEmpresa($id);
             $respSql = $conx->EjecutarConRetorno($sql);
 
             if ($respSql) {
-                $idEmpresa = $respSql['idempresa'];
-                $sql = $this->actualizarEmpresa($idEmpresa, $newNomEmpresa, $dirEmpresa);
+                
+                $sql = $this->actualizarEmpresa($id, $newNomEmpresa, $dirEmpresa);
                 $respSql2 = $conx->Ejecutar($sql);
                 if ($respSql2 == 1) {
                     $emp = new Empresa();
-                    $emp->cargarEmpresa($idEmpresa, $newNomEmpresa, $dirEmpresa);
+                    $emp->cargarEmpresa($id, $newNomEmpresa, $dirEmpresa);
                     $isOk = $emp;
                 }
             }
@@ -127,14 +118,14 @@ class Empresa
     }
 
 
-    public function eliminarEmpresa($nomEmpresa)
+    public function eliminarEmpresa($id)
     {
 
         $isBorrado = 0;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
         if ($resp == 1) {
-            $sql = $this->searchEmpresa($nomEmpresa);
+            $sql = $this->searchEmpresa($id);
             $respSql = $conx->EjecutarConRetorno($sql);
 
             if ($respSql) {
@@ -188,20 +179,19 @@ class Empresa
             if ($base->Ejecutar($consultaEmpresa)) {
                 $arregloEmpresa = array();
                 while ($row2 = $base->Registro()) {
-
                     $idEmpresa = $row2['idempresa'];
-                    $enombre = $row2['enombre'];
-                    $edireccion = $row2['edireccion'];
-
-
                     $emp = new Empresa();
-                    $emp->cargarEmpresa($idEmpresa, $enombre, $edireccion);
+                    $empresa = $emp->buscarEmpresa($idEmpresa);
+                    $emp->cargarEmpresa($idEmpresa, $empresa->getEnombre(), $empresa->getEdireccion());
+                    /*
+                                        La empresa no contiene viajes, los viajes tienen la referencia a empresa.
+                                        esto no hace falta.
+                                        
+                                        $viaje = new Viaje();
+                                        $cond = "idempresa = $idEmpresa";
+                                        $colViajeAux = $viaje->listar($cond);
 
-                    $viaje = new Viaje();
-                    $cond = "idempresa = $idEmpresa";
-                    $colViajeAux = $viaje->listar($cond);
-
-                    $emp->setViaje($colViajeAux);
+                                        $emp->setViaje($colViajeAux);*/
                     array_push($arregloEmpresa, $emp);
                 }
             }

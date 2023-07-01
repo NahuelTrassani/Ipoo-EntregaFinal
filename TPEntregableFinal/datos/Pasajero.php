@@ -6,7 +6,7 @@ class Pasajero
     private $nombre;
     private $apellido;
     private $telefono;
-    private $viaje;//intancia de objeto
+    private $viaje; //intancia de objeto Viaje
     private $numeroAsiento;
     private $numeroTicket;
     private $mensajeoperacion;
@@ -33,9 +33,9 @@ class Pasajero
     {
         return "{$this->dni}" . "\n" . "{$this->nombre}" . "\n" . "{$this->apellido}";
     }
-    public function getVuelo()
+    public function getViaje()
     {
-        return $this->viaje->getId();
+        return $this->viaje;
     }
     public function getDni()
     {
@@ -66,11 +66,6 @@ class Pasajero
     }
 
 
-
-    //
-    //SETTERS
-    // 
-
     //Establece el valor de documento
 
     public function setDni($dni)
@@ -78,9 +73,9 @@ class Pasajero
         $this->dni = $dni;
     }
 
-    public function setVuelo($idViaje)
+    public function setViaje($viaje)
     {
-        $this->viaje->setId($idViaje);
+        $this->viaje = $viaje;
     }
     // Establece el valor de nombre
 
@@ -102,7 +97,7 @@ class Pasajero
         $this->telefono = $telefono;
     }
 
-    
+
 
     public function getNumeroAsiento()
     {
@@ -135,13 +130,13 @@ class Pasajero
         $this->numeroTicket = 0;
     }
 
-    public function cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje)
+    public function cargarPasajero($dni, $nombre, $apellido, $telefono, $viaje)
     {
         $this->setDni($dni);
         $this->setNombre($nombre);
         $this->setApellido($apellido);
         $this->setTelefono($telefono);
-        $this->setVuelo($idViaje);
+        $this->setViaje($viaje);
     }
 
     public function agregarPasajero($dni, $nombre, $apellido, $telefono, $viaje)
@@ -154,7 +149,7 @@ class Pasajero
             $sql = $this->insertarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
             $respSql = $conx->Ejecutar($sql);
             if ($respSql == 1) {
-                $this->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                $this->cargarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
                 $pasajero = $this;
             }
         }
@@ -178,7 +173,9 @@ class Pasajero
                     $apellido = $respSql['papellido'];
                     $telefono = $respSql['ptelefono'];
                     $idViaje = $respSql['idviaje'];
-                    $this->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                    $viajeAux = new Viaje();
+                    $viaje = $viajeAux->buscarViaje($idViaje);
+                    $this->cargarPasajero($dni, $nombre, $apellido, $telefono, $viaje);
                     $isEncontrado = $this;
                 }
             }
@@ -188,6 +185,7 @@ class Pasajero
 
     public function modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono)
     {
+
         $pasajero = null;
         $conx = new BaseDatos();
         $resp = $conx->iniciar();
@@ -195,7 +193,9 @@ class Pasajero
             $sql = $this->actualizarPasajero($dniPasj, $nombre, $apellido, $telefono, $idViaje);
             $respSql = $conx->Ejecutar($sql);
             if ($respSql == 1) {
-                $this->cargarPersona($dniPasj, $nombre, $apellido, $telefono, $idViaje);
+                $viajeAux = new Viaje();
+                $viaje = $viajeAux->buscarViaje($idViaje);
+                $this->cargarPasajero($dniPasj, $nombre, $apellido, $telefono, $viaje);
                 $pasajero = $this;
             }
         }
@@ -217,13 +217,14 @@ class Pasajero
                 while ($row2 = $base->Registro()) {
 
                     $dni = $row2['pdocumento'];
-                    $nombre = $row2['pnombre'];
-                    $apellido = $row2['papellido'];
-                    $telefono = $row2['ptelefono'];
-                    $idViaje = $row2['idviaje'];
-
                     $pasajero = new Pasajero();
-                    $pasajero->cargarPersona($dni, $nombre, $apellido, $telefono, $idViaje);
+                    $pasajero->buscarPasajero($dni);
+                    $nombre = $pasajero->getNombre();
+                    $apellido = $pasajero->getApellido();
+                    $telefono = $pasajero->getTelefono();
+                    $viaje = $pasajero->getViaje();
+  
+                    $pasajero->cargarPasajero($dni, $nombre, $apellido, $telefono, $viaje);
                     array_push($arregloPersona, $pasajero);
 
                 }

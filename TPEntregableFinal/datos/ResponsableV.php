@@ -16,7 +16,7 @@ class ResponsableV
 
     public function __toString()
     {
-        return "\n" . "Responsable: " . $this->apellido . ", " . $this->nombre . "\n" . "Id de empleado: " . $this->idEmpleado . "Numero de licencia: " . $this->numLicencia . "\n";
+        return "\n" . "Responsable: " . $this->apellido . ", " . $this->nombre . "\n" . "Id de empleado: " . $this->idEmpleado ."\n" . "Numero de licencia: " . $this->numLicencia . "\n";
     }
 
 
@@ -127,11 +127,14 @@ class ResponsableV
                 $arregloResponsables = array();
                 while ($row = $base->Registro()) {
                     $numEmpleado = $row['rnumeroempleado'];
-                    $numLicencia = $row['rnumerolicencia'];
-                    $nombre = $row['rnombre'];
-                    $apellido = $row['rapellido'];
 
                     $responsable = new ResponsableV();
+                    $responsable->buscarResponsable($numEmpleado);
+
+                    $numLicencia = $responsable->getNumLicencia();
+                    $nombre = $responsable->getNombre();
+                    $apellido = $responsable->getApellido();
+
                     $responsable->insertResponsable($numEmpleado, $nombre, $apellido, $numLicencia);
                     array_push($arregloResponsables, $responsable);
                 }

@@ -9,6 +9,10 @@
  * no haces MOR ---OOOKKKK
  * No modificar la clase base de datos para insert de viaje/y demas tablas, ni insert    ---OOOKKKK
  * no echo ni retorno en la misma funcion ---OOOKKKK
+ 
+ * corregir tbn delegacion en pasajeros    ---OOOKKKK
+ * mostrar bien las colecciones    ---OOOKKKK
+ 
  */
 
 
@@ -20,15 +24,15 @@ include "datos/Pasajero.php";
 
 $empresa = new Empresa();
 $colEmpresas = $empresa->listar();
-print_r($colEmpresas);
+
 function verEmpresas()
 {
     $empresa = new Empresa();
     $colEmpresas = $empresa->listar();
     foreach ($colEmpresas as $empresa) {
-        echo "ID: " . $empresa->getIdEmpresa() . "\n";
+        echo "\n" . "Id: " . $empresa->getIdEmpresa() . "\n";
         echo "Nombre: " . $empresa->getEnombre() . "\n";
-        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "Dirección: " . $empresa->getEdireccion() . "\n";
         echo "\n";
     }
 }
@@ -38,9 +42,12 @@ function verViajes()
     $viaje = new Viaje();
     $colViajes = $viaje->listar();
     foreach ($colViajes as $viaje) {
-        echo "ID: " . $viaje->getId() . "\n";
+        $viajeEmp = $viaje->getEmpresa();
+        $viajeResp = $viaje->getResponsable();
+        echo "\n" . "Id: " . $viaje->getId() . "\n";
         echo "Destino: " . $viaje->getDestino() . "\n";
-        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "Id Empresa: " . $viajeEmp->getIdEmpresa() . "\n";
+        echo "N° Empleado: " . $viajeResp->getIdEmpleado() . "\n";
         echo "\n";
     }
 }
@@ -51,9 +58,9 @@ function verPasajeros()
     $pasajero = new Pasajero();
     $colPasajeros = $pasajero->listar();
     foreach ($colPasajeros as $pasajero) {
-        echo "ID: " . $pasajero->getDni() . "\n";
+        echo "\n" . "Dni: " . $pasajero->getDni() . "\n";
         echo "Nombre: " . $pasajero->getNombre() . "\n";
-        // Agrega aquí el resto de las propiedades que deseas mostrar
+        echo "Apellido: " . $pasajero->getApellido() . "\n";
         echo "\n";
     }
 }
@@ -66,41 +73,40 @@ menu($colEmpresas);
 
 function menu($colEmpresas)
 {
-    echo "\n" . "¡Bienvenido/a!" . "\n";
-    echo "Seleccione una opción para continuar: " . "\n" . "\n" .
-
-        "------------EMPRESA------------ " . "\n" . "\n" .
+    echo "\n" . "\n" . "¡Bienvenido/a!" . "\n" . "\n";
+    echo "\n" .
+        "║------------EMPRESA----------║ " . "\n" . "\n" .
 
         "║  1   ║ Cargar Empresa" . "\n" .
         "║  2   ║ Modificar Empresa" . "\n" .
         "║  3   ║ Eliminar Empresa" . "\n" .
         "║  99  ║ Buscar Empresa" . "\n" . "\n" .
 
-        "       ║        VIAJE        ║" . "\n" . "\n" .
+        "║------------VIAJE------------║" . "\n" . "\n" .
 
         "║  4   ║ Cargar Viaje" . "\n" .
         "║  5   ║ Modificar Viaje" . "\n" .
         "║  6   ║ Eliminar Viaje" . "\n" .
         "║  7   ║ Buscar Viaje" . "\n" . "\n" .
 
-        "       ║      RESPONSABLE     ║" . "\n" . "\n" .
+        "║-----------RESPONSABLE-------║" . "\n" . "\n" .
 
-        "║  8   ║ Cargar Chofer/Piloto" . "\n" .
-        "║  100 ║ Buscar Chofer/Piloto" . "\n" . "\n" .
+        "║  8   ║ Cargar Responsable" . "\n" .
+        "║  100 ║ Buscar Responsable" . "\n" . "\n" .
 
-        "       ║        PASAJERO       ║" . "\n" . "\n" .
+        "║-----------PASAJERO----------║" . "\n" . "\n" .
 
         "║  9   ║ Cargar Pasajero" . "\n" .
         "║  10  ║ Modificar Pasajero" . "\n" .
         "║  11  ║ Buscar Pasajero" . "\n" . "\n" .
-
-        "║  111  ║ print Empresa" . "\n" .
-        "║  112  ║ print Viajes" . "\n" .
-        "║  113  ║ print Pasjeros" . "\n" .
+        "║-----------LISTAS----------║" . "\n" . "\n" .
+        "║  111  ║ Listar Empresas" . "\n" .
+        "║  112  ║ Listar Viajes" . "\n" .
+        "║  113  ║ Listar Pasajeros" . "\n" . "\n" .
         "║------------SALIR------------║" . "\n" . "\n" .
         "║  0  ║ Salir                               " . "\n" .
-        "                                   " . "\n" .
-        "---------------Ingrese su opción-----------------" . "\n";
+        "                                   " . "\n" . "\n" .
+        "Seleccione una opción para continuar: " . "\n";
 
     $opcion = fgets(STDIN);
 
@@ -144,17 +150,17 @@ function menu($colEmpresas)
         case 2:
             echo "eligió la opción 'Modificar Empresa'" . "\n";
 
-            echo "Indique el nombre de la empresa que desea modificar" . "\n";
-            $nomEmpresa = trim(fgets(STDIN));
+            echo "Indique el id de la empresa que desea modificar" . "\n";
+            $id = trim(fgets(STDIN));
 
             echo "Ingrese un nuevo nombre para la empresa" . "\n";
-            $newNomEmpresa = fgets(STDIN);
+            $newNomEmpresa = trim(fgets(STDIN));
 
             echo "Nueva dirección de la empresa" . "\n";
             $dirEmpresa = trim(fgets(STDIN));
 
             $empresa = new Empresa();
-            $updEmp = $empresa->modificarEmpresa($nomEmpresa, $newNomEmpresa, $dirEmpresa);
+            $updEmp = $empresa->modificarEmpresa($id, $newNomEmpresa, $dirEmpresa);
             if ($updEmp) {
                 foreach ($colEmpresas as $key => $emp) {
                     if ($emp->getIdEmpresa() == $updEmp->getIdEmpresa()) {
@@ -170,10 +176,10 @@ function menu($colEmpresas)
             break;
         case 3:
             echo "eligió la opción 'Eliminar Empresa'" . "\n";
-            echo "Indique el nombre de la empresa que desea eliminar" . "\n";
-            $nomEmpresa = trim(fgets(STDIN));
+            echo "Indique el id de la empresa que desea eliminar" . "\n";
+            $id = trim(fgets(STDIN));
             $empresa = new Empresa();
-            $dltEmp = $empresa->eliminarEmpresa($nomEmpresa);
+            $dltEmp = $empresa->eliminarEmpresa($id);
             if ($dltEmp > 0) {
                 echo "la empresa q se borró tiene id: " . $dltEmp . "\n";
                 foreach ($colEmpresas as $key => $emp) {
@@ -191,13 +197,16 @@ function menu($colEmpresas)
         case 99:
             //buscar empresa
             echo "Eligió la opción 'Buscar empresa'" . "\n";
-            echo "Ingrese el nombre de la empresa que desea buscar: " . "\n";
-            $nomEmpresa = trim(fgets(STDIN));
+            echo "Ingrese el id de la empresa que desea buscar: " . "\n";
+            $idEmp = trim(fgets(STDIN));
             $empresa = new Empresa();
-            $respSql = $empresa->buscarEmpresa($nomEmpresa);
+            $respSql = $empresa->buscarEmpresa($idEmp);
             if ($respSql) {
-                echo "A continuación se muestra la empresa encontrada";
-                print_r($respSql);
+
+                echo "\nId: " . $respSql->getIdEmpresa() . "\n";
+                echo "Nombre: " . $respSql->getEnombre() . "\n";
+                echo "Dirección: " . $respSql->getEdireccion() . "\n";
+                echo "\n";
             } else {
                 echo "No se encontró la empresa";
             }
@@ -209,20 +218,19 @@ function menu($colEmpresas)
 
             echo "Debe indicar la empresa y el responsable del viaje" . "\n";
 
-            echo "Ingrese el nombre de la empresa: " . "\n";
+            echo "Ingrese el id de la empresa: " . "\n";
             $idEmp = trim(fgets(STDIN));
             $empresa = new Empresa();
             $parmEmpresa = $empresa->buscarEmpresa($idEmp);
             if ($parmEmpresa) {
-                $idEmpresa = $parmEmpresa->getIdEmpresa();
+                
                 //echo "el id de la empresa seleccionada es: ". $idEmpresa. "\n";
-                echo "Ingrese el nombre del Responsable: " . "\n";
+                echo "Ingrese el id del Responsable: " . "\n";
                 $idResp = trim(fgets(STDIN));
                 $responsable = new ResponsableV();
                 $parmResponsable = $responsable->buscarResponsable($idResp);
                 if ($parmResponsable) {
-                    $idResponsable = $parmResponsable->getIdEmpleado();
-
+                    
                     echo "Indique el destino del viaje: " . "\n";
                     $destino = trim(fgets(STDIN));
 
@@ -235,13 +243,21 @@ function menu($colEmpresas)
                     $viaje = new Viaje();
                     $newViaje = $viaje->agregarViaje($destino, $cantMax, $parmEmpresa, $parmResponsable, $costoViaje);
                     if ($newViaje) {
-                        $id = $newViaje->getIdEmpresa();
+
                         foreach ($colEmpresas as $empresa) {
-                            if ($empresa->getIdEmpresa() == $idEmpresa) {
+                            if ($empresa->getIdEmpresa() == $idEmp) {
                                 $empresa->setViaje($newViaje);
                             }
                         }
-                        echo "Los datos del viaje cargado son: " . $newViaje . "\n";
+                        echo "\nLos datos del viaje cargado son: " . "\n"; // . $newViaje . "\n";
+                        
+                        echo "\n" . "Id Viaje: " . $newViaje->getId() . "\n";
+                        echo "Destino: " . $destino . "\n";
+                        echo "Id Empresa: " . $empresa->getIdEmpresa() . "\n";
+                        echo "N° Empleado: " . $responsable->getIdEmpleado() . "\n";
+                        echo "\n";
+
+
                     } else {
                         echo "No se pudo cargar el viaje";
                     }
@@ -257,24 +273,24 @@ function menu($colEmpresas)
             echo "eligió la opción 'Modificar Viaje'" . "\n";
             echo "Debe indicar la empresa y el responsable del viaje" . "\n";
 
-            echo "Ingrese el nombre de la empresa: " . "\n";
-            $nomEmpresa = trim(fgets(STDIN));
+            echo "Ingrese el id de la empresa: " . "\n";
+            $id = trim(fgets(STDIN));
             $empresa = new Empresa();
-            $parmEmpresa = $empresa->buscarEmpresa($nomEmpresa);
+            $parmEmpresa = $empresa->buscarEmpresa($id);
             if ($parmEmpresa) {
-                $idEmpresa = $parmEmpresa->getIdEmpresa();
-                echo "Ingrese el nombre del Responsable: " . "\n";
-                $nombre = trim(fgets(STDIN));
+               
+                echo "Ingrese el id del Responsable: " . "\n";
+                $idResp = trim(fgets(STDIN));
                 $responsable = new ResponsableV();
-                $parmResponsable = $responsable->buscarResponsable($nombre);
+                $parmResponsable = $responsable->buscarResponsable($idResp);
                 if ($parmResponsable) {
-                    $idResponsable = $parmResponsable->getIdEmpleado();
+                  
 
                     echo "Indique el id del viaje que desea modificar" . "\n";
                     $idViaje = trim(fgets(STDIN));
 
                     echo "Ingrese un nuevo destino para el viaje" . "\n";
-                    $destino = fgets(STDIN);
+                    $destino = trim(fgets(STDIN));
 
                     echo "Indique la cantidad maxima de pasajeros" . "\n";
                     $cantMax = trim(fgets(STDIN));
@@ -283,12 +299,12 @@ function menu($colEmpresas)
                     $costoViaje = fgets(STDIN);
 
                     $viaje = new Viaje();
-                    $updViaje = $viaje->modificarViaje($idViaje, $destino, $cantMax, $idEmpresa, $idResponsable, $costoViaje);
+                    $updViaje = $viaje->modificarViaje($idViaje, $destino, $cantMax, $parmEmpresa, $parmResponsable, $costoViaje);
                     if ($updViaje) {
                         foreach ($colEmpresas as $empresa) {
                             $colViajes = $empresa->getViajes();
 
-                            //print_r($colViajes); //no guarda el viaje en la col
+
                             foreach ($colViajes as $key => $viajeAux) { {
                                     if ($viajeAux->getId() == $updViaje->getId()) {
                                         $colViajes[$key] = $updViaje; // Actualizar el viaje en la colección de viajes de la empresa
@@ -300,7 +316,13 @@ function menu($colEmpresas)
                             // Actualizar la colección de viajes en la instancia de la empresa
                             $empresa->setViaje($colViajes);
                         }
-                        echo "Los datos del viaje modificado son: " . $updViaje . "\n";
+                        echo "\nLos datos del viaje modificado son: \n";
+
+                        echo "\n" . "Id: " . $updViaje->getId() . "\n";
+                        echo "Destino: " . $updViaje->getDestino() . "\n";
+                        echo "Id Empresa: " . $parmEmpresa->getIdEmpresa() . "\n";
+                        echo "N° Empleado: " . $parmResponsable->getIdEmpleado() . "\n";
+                        echo "\n";
                     } else {
                         echo "No se pudo modificar el viaje";
                     }
@@ -329,13 +351,13 @@ function menu($colEmpresas)
                         }
                         $empresa->eliminarViaje($esElViaje);
                     }
-                    echo "Viaje eliminado con éxito";
                 }
+                echo "Viaje eliminado con éxito";
             } else {
                 echo "No se pudo eliminar el viaje";
 
             }
-            //print_r($colEmpresas);
+
             menu($colEmpresas);
             break;
         case 7:
@@ -345,8 +367,11 @@ function menu($colEmpresas)
             $viaje = new Viaje();
             $respSql = $viaje->buscarViaje($idViaje);
             if ($respSql) {
-                echo "A continuación se muestra el viaje encontrado";
-                print_r($respSql);
+                echo "\n" . "Id: " . $respSql->getId() . "\n";
+                echo "Destino: " . $respSql->getDestino() . "\n";
+                echo "Id Empresa: " . $viaje->getEmpresa()->getIdEmpresa() . "\n";
+                echo "N° Empleado: " . $viaje->getResponsable()->getIdEmpleado() . "\n";
+                echo "\n";
             } else {
                 echo "No se encontró el viaje";
             }
@@ -375,10 +400,10 @@ function menu($colEmpresas)
 
         case 100:
             echo "Eligió la opción 'Buscar Responsable'" . "\n";
-            echo "Ingrese el nombre del Responsable que desea buscar: " . "\n";
-            $nombre = trim(fgets(STDIN));
+            echo "Ingrese el id del Responsable que desea buscar: " . "\n";
+            $id = trim(fgets(STDIN));
             $responsable = new ResponsableV();
-            $respSql = $responsable->buscarResponsable($nombre);
+            $respSql = $responsable->buscarResponsable($id);
             if ($respSql) {
                 echo "A continuación se muestra el responsable encontrado" . $respSql . "\n";
             } else {
@@ -395,14 +420,14 @@ function menu($colEmpresas)
             if ($respSql) {
                 echo "el pasajero ya se encuentra cargado. VIAJE EN PASAJERO ES UN FK NO PRIMARY, POR LO TANTO NO PUEDO REPETIR EL DNI, POR ENDE EL PASAJERO NO PUEDE ESTAR EN MAS DE UN VIAJE." . "\n";
             } else {
-                echo "Indique el vuelo donde quiere ubicar al pasajero: " . "\n";
+                echo "Indique el id del viaje donde quiere ubicar al pasajero: " . "\n";
                 $idViaje = trim(fgets(STDIN));
                 $viaje = new Viaje();
                 $viajeAux = $viaje->buscarViaje($idViaje);
                 if ($viajeAux) {
-                    $idViaje = $viajeAux->getIdViaje();
+                   
                     $cantMax = $viajeAux->getCantMaxPasajeros();
-                    //$cantTotal = $viajeAux->getcantPasajeros();
+                    //$cantTotal = $viajeAux->cuentaCantPasajeros();
                     $costo = $viajeAux->getCostoViaje();
                     //if ($cantTotal < $cantMax) {
                     echo "Indique el nombre del pasajero: " . "\n";
@@ -442,7 +467,7 @@ function menu($colEmpresas)
                     echo "No se encontró el viaje";
                 }
             }
-            //print_r($colEmpresas);
+
             menu($colEmpresas);
             break;
         case 10:
@@ -453,66 +478,65 @@ function menu($colEmpresas)
             $respPasajero = $pasajero->buscarPasajero($documento);
             if ($respPasajero) {
                 $dniPasj = $respPasajero->getDni();
-                $oldIdViaje = $respPasajero->getVuelo();
+                $oldViaje = $respPasajero->getViaje();
+
                 echo "Indique el vuelo donde quiere ubicar al pasajero: " . "\n";
                 $idViaje = trim(fgets(STDIN));
                 $viaje = new Viaje();
                 $viajeAux = $viaje->buscarViaje($idViaje);
                 if ($viajeAux) {
-                    $idViaje = $viajeAux->getIdViaje();
+                   
                     $cantMax = $viajeAux->getCantMaxPasajeros();
-                    $cantTotal = $viajeAux->getcantPasajeros();
+
                     $costo = $viajeAux->getCostoViaje();
-                    if ($cantTotal < $cantMax) {
-                        echo "Indique el nombre del pasajero: " . "\n";
-                        $nombre = trim(fgets(STDIN));
 
-                        echo "Indique el apellido del pasajero: " . "\n";
-                        $apellido = trim(fgets(STDIN));
+                    echo "Indique el nombre del pasajero: " . "\n";
+                    $nombre = trim(fgets(STDIN));
 
-                        echo "Indique el teléfono del pasajero: " . "\n";
-                        $telefono = fgets(STDIN);
-                        //$colEmpresas = $pasajero->modificarPasajero($dniPasj, $oldIdViaje, $colEmpresas,$nombre, $apellido, $telefono);
+                    echo "Indique el apellido del pasajero: " . "\n";
+                    $apellido = trim(fgets(STDIN));
 
-                        $updPasajero = $pasajero->modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono);
+                    echo "Indique el teléfono del pasajero: " . "\n";
+                    $telefono = fgets(STDIN);
+                    //$colEmpresas = $pasajero->modificarPasajero($dniPasj, $oldIdViaje, $colEmpresas,$nombre, $apellido, $telefono);
 
-                        //borrar pasajero col vieja e insertarlo en la col nueva
-                        foreach ($colEmpresas as $emp) {
-                            $colViajesEmp = $emp->getViajes();
-                            foreach ($colViajesEmp as $viajesEmp) {
-                                if ($viajesEmp->getIdViaje() == $oldIdViaje) {
-                                    $colPasajeros = $viajesEmp->getPasajeros();
-                                    foreach ($colPasajeros as $key => $pasajero) {
-                                        if ($pasajero->getDni() == $dniPasj) {
-                                            unset($colPasajeros[$key]); // Eliminar el pasajero de la colección
-                                            break; // Salir del bucle una vez que se ha encontrado y eliminado el pasajero
-                                        }
+                    $updPasajero = $pasajero->modificarPasajero($dniPasj, $idViaje, $nombre, $apellido, $telefono);
+
+                    //borrar pasajero col vieja e insertarlo en la col nueva
+                    foreach ($colEmpresas as $emp) {
+                        $colViajesEmp = $emp->getViajes();
+                        foreach ($colViajesEmp as $viajesEmp) {
+                            if ($viajesEmp->getIdViaje() == $oldViaje->getId()) {
+                                $colPasajeros = $viajesEmp->getPasajeros();
+                                foreach ($colPasajeros as $key => $pasajero) {
+                                    if ($pasajero->getDni() == $dniPasj) {
+                                        unset($colPasajeros[$key]); // Eliminar el pasajero de la colección
+                                        break; // Salir del bucle una vez que se ha encontrado y eliminado el pasajero
                                     }
-                                    $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
-                                    echo "Éxito! El pasajero ha sido eliminado.\n";
                                 }
+                                $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
+                                echo "Éxito! El pasajero ha sido eliminado.\n";
                             }
                         }
-                        //inserta al pasajero en la nueva col de viajes.
-                        foreach ($colEmpresas as $emp) {
-                            $colViajesEmp = $emp->getViajes();
-                            foreach ($colViajesEmp as $viajesEmp) {
-                                if ($viajesEmp->getIdViaje() == $idViaje) {
-                                    $colPasajeros = $viajesEmp->getPasajeros();
-                                    $colPasajeros[] = $updPasajero; // Agregar el nuevo pasajero a la colección de pasajeros del viaje
-                                    $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
-                                    echo "Éxito! Los datos del pasajero cargado son: " . $updPasajero . "\n";
-                                    break; // Salir del bucle una vez que se ha encontrado el viaje correspondiente
-                                }
-                            }
-                        }
-
-                    } else {
-                        echo "No se encontró al pasajero";
                     }
+                    //inserta al pasajero en la nueva col de viajes.
+                    foreach ($colEmpresas as $emp) {
+                        $colViajesEmp = $emp->getViajes();
+                        foreach ($colViajesEmp as $viajesEmp) {
+                            if ($viajesEmp->getIdViaje() == $idViaje) {
+                                $colPasajeros = $viajesEmp->getPasajeros();
+                                $colPasajeros[] = $updPasajero; // Agregar el nuevo pasajero a la colección de pasajeros del viaje
+                                $viajesEmp->setPasajeros($colPasajeros); // Actualizar la colección de pasajeros del viaje
+                                echo "Éxito! Los datos del pasajero cargado son: " . $updPasajero . "\n";
+                                break; // Salir del bucle una vez que se ha encontrado el viaje correspondiente
+                            }
+                        }
+                    }
+
+                } else {
+                    echo "No se encontró al pasajero";
                 }
             }
-            //print_r($colEmpresas);
             menu($colEmpresas);
             break;
         case 11:
