@@ -149,7 +149,7 @@ class Pasajero
             $sql = $this->insertarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
             $respSql = $conx->Ejecutar($sql);
             if ($respSql == 1) {
-                $this->cargarPasajero($dni, $nombre, $apellido, $telefono, $idViaje);
+                $this->cargarPasajero($dni, $nombre, $apellido, $telefono, $viaje);
                 $pasajero = $this;
             }
         }
